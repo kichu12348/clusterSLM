@@ -74,15 +74,30 @@ def build_symbol_graph(edges):
     Builds the Level-3 Function/Call Dependency Graph using NetworkX.
     """
     G = nx.DiGraph()
-    
+
     # We filter out highly common built-ins so they don't skew the partitioning algorithm
     # (e.g., we don't want two unrelated functions clustered together just because they both call len())
-    ignore_builtins = {'len', 'str', 'int', 'bool', 'isinstance', 'open', 'print', 'set', 'dict', 'join', 'lower', 'get', 'decode', 'encode'}
-    
+    ignore_builtins = {
+        "len",
+        "str",
+        "int",
+        "bool",
+        "isinstance",
+        "open",
+        "print",
+        "set",
+        "dict",
+        "join",
+        "lower",
+        "get",
+        "decode",
+        "encode",
+    }
+
     for caller, callee in edges:
         if callee not in ignore_builtins:
             G.add_edge(caller, callee)
-            
+
     return G
 
 
@@ -119,4 +134,3 @@ def plot_graph(graph):
     plt.axis("off")
     plt.tight_layout()
     plt.show()
-
