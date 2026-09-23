@@ -1,0 +1,742 @@
+[
+  {
+    "partition_id": 1,
+    "internal_symbols": [
+      "Test.services.user_service.UserService.deactivate_account",
+      "Test.auth.authenticator.Authenticator.authenticate_credentials",
+      "Test.services.admin_service.AdminService.search_audit_trail",
+      "Test.auth.access_control.AccessController._log_authorization_event",
+      "Test.core.utils.validate_email",
+      "Test.db.connection.DatabaseManager.get_connection",
+      "Test.db.repository.UserRepository.get_by_username",
+      "Test.models.entities.AuditEntry",
+      "Test.db.repository.DocumentRepository.get_by_id",
+      "Test.db.repository.UserRepository._row_to_user",
+      "Test.db.repository.AuditRepository.record_event",
+      "Test.db.repository.UserRepository.get_by_id",
+      "Test.db.repository.AuditRepository.list_recent",
+      "Test.db.repository.UserRepository.update_email",
+      "Test.models.entities.DocumentRecord",
+      "Test.db.query_builder.DynamicQueryBuilder.run_dynamic_audit_search",
+      "Test.db.query_builder.DynamicQueryBuilder.build_audit_filter_query",
+      "Test.db.repository.UserRepository.set_active_status",
+      "Test.core.utils.validate_username",
+      "Test.db.repository.UserRepository.create",
+      "Test.services.user_service.UserService.register_user",
+      "Test.models.entities.UserRole",
+      "Test.db.repository.UserRepository.update_password",
+      "Test.services.document_service.DocumentService.get_document_metadata",
+      "Test.db.repository.UserRepository.list_all",
+      "Test.db.repository.UserRepository.update_last_login",
+      "Test.services.user_service.UserService.update_email_address",
+      "Test.db.connection.DatabaseManager.execute_raw_query"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.api.controllers.AuthController.handle_login",
+        "target": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.db.connection.DatabaseManager.initialize_schema",
+        "target": "Test.db.connection.DatabaseManager.get_connection",
+        "from_partition": 4
+      },
+      {
+        "source": "Test.db.connection.DatabaseManager.initialize_schema",
+        "target": "conn.commit",
+        "from_partition": 4
+      },
+      {
+        "source": "Test.api.controllers.UserController.handle_update_profile",
+        "target": "Test.services.user_service.UserService.update_email_address",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.api.controllers.UserController.handle_register",
+        "target": "Test.services.user_service.UserService.register_user",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.services.document_service.DocumentService.upload_document",
+        "target": "Test.models.entities.DocumentRecord",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "Test.db.connection.DatabaseManager.get_connection",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "conn.commit",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "conn.cursor",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "cursor.execute",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.services.user_service.UserService.change_user_password",
+        "target": "Test.db.repository.UserRepository.get_by_id",
+        "from_partition": 8
+      },
+      {
+        "source": "Test.services.user_service.UserService.change_user_password",
+        "target": "Test.db.repository.UserRepository.update_password",
+        "from_partition": 8
+      },
+      {
+        "source": "Test.services.user_service.UserService.change_user_password",
+        "target": "Test.db.repository.DocumentRepository.get_by_id",
+        "from_partition": 8
+      },
+      {
+        "source": "Test.api.controllers.AdminController.handle_audit_search",
+        "target": "Test.services.admin_service.AdminService.search_audit_trail",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.auth.access_control.AccessController.check_permission",
+        "target": "Test.auth.access_control.AccessController._log_authorization_event",
+        "from_partition": 9
+      },
+      {
+        "source": "Test.services.user_service.UserService.get_user_profile",
+        "target": "Test.db.repository.UserRepository.get_by_id",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.services.user_service.UserService.get_user_profile",
+        "target": "Test.db.repository.DocumentRepository.get_by_id",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.services.user_service.UserService.list_system_users",
+        "target": "Test.db.repository.UserRepository.list_all",
+        "from_partition": 2
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+        "target": "Test.core.utils.format_iso_timestamp",
+        "to_partition": 7
+      },
+      {
+        "source": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+        "target": "Test.auth.authenticator.Authenticator.verify_password",
+        "to_partition": 8
+      },
+      {
+        "source": "Test.services.user_service.UserService.register_user",
+        "target": "Test.auth.authenticator.Authenticator.hash_password",
+        "to_partition": 8
+      },
+      {
+        "source": "Test.services.user_service.UserService.register_user",
+        "target": "Test.core.utils.format_iso_timestamp",
+        "to_partition": 7
+      },
+      {
+        "source": "Test.services.user_service.UserService.register_user",
+        "target": "Test.auth.token_manager.TokenManager.create_session_token",
+        "to_partition": 3
+      },
+      {
+        "source": "Test.db.repository.UserRepository._row_to_user",
+        "target": "Test.models.entities.User",
+        "to_partition": 7
+      },
+      {
+        "source": "Test.auth.access_control.AccessController._log_authorization_event",
+        "target": "Test.core.utils.format_iso_timestamp",
+        "to_partition": 7
+      }
+    ],
+    "scoped_code": {
+      "Test.services.user_service.UserService.deactivate_account": "    def deactivate_account(self, user_id: int) -> bool:\n        \"\"\"Disable access privileges for a user account.\"\"\"\n        return self.user_repo.set_active_status(user_id, False)",
+      "Test.auth.authenticator.Authenticator.authenticate_credentials": "    def authenticate_credentials(\n        self, username: str, candidate_password: str\n    ) -> Optional[User]:\n        \"\"\"Authenticate user against repository records and record successful login timestamp.\"\"\"\n        user = self.user_repo.get_by_username(username)\n        if not user or not user.is_active:\n            return None\n\n        if not self.verify_password(\n            candidate_password, user.password_hash, user.password_salt\n        ):\n            return None\n\n        self.user_repo.update_last_login(user.id, format_iso_timestamp())\n        return user",
+      "Test.services.admin_service.AdminService.search_audit_trail": "    def search_audit_trail(\n        self,\n        action_filter: Optional[str] = None,\n        date_from: Optional[str] = None,\n        status_filter: Optional[str] = None,\n        limit: int = 50,\n    ) -> List[Dict[str, Any]]:\n        \"\"\"Query security audit telemetry matching filter criteria.\"\"\"\n        return self.query_builder.run_dynamic_audit_search(\n            action_filter=action_filter,\n            date_from=date_from,\n            status_filter=status_filter,\n            limit=limit,\n        )",
+      "Test.auth.access_control.AccessController._log_authorization_event": "    def _log_authorization_event(\n        self,\n        actor_id: Optional[int],\n        action: str,\n        target_resource: str,\n        status: str,\n        details: str,\n    ) -> None:\n        \"\"\"Dispatch security audit entry to the audit log repository.\"\"\"\n        entry = AuditEntry(\n            id=None,\n            actor_id=actor_id,\n            action=action,\n            target_resource=target_resource,\n            status=status,\n            details=details,\n            created_at=format_iso_timestamp(),\n        )\n        self.audit_repo.record_event(entry)",
+      "Test.core.utils.validate_email": "def validate_email(email: str) -> bool:\n    \"\"\"Validate standard RFC email format syntax.\"\"\"\n    if not email or len(email) > 254:\n        return False\n    return bool(EMAIL_REGEX.match(email))",
+      "Test.db.connection.DatabaseManager.get_connection": "    def get_connection(self) -> sqlite3.Connection:\n        \"\"\"Create and configure a new SQLite connection with row factory enabled.\"\"\"\n        conn = sqlite3.connect(self.db_path)\n        conn.row_factory = sqlite3.Row\n        conn.execute(\"PRAGMA foreign_keys = ON\")\n        return conn",
+      "Test.db.repository.UserRepository.get_by_username": "    def get_by_username(self, username: str) -> Optional[User]:\n        \"\"\"Fetch a single user by their unique username.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users WHERE username = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (username,))\n            row = cursor.fetchone()\n            if row:\n                return self._row_to_user(row)\n        return None",
+      "Test.models.entities.AuditEntry": "class AuditEntry:\n    \"\"\"System audit record documenting critical administrative or security actions.\"\"\"\n    id: Optional[int]\n    actor_id: Optional[int]\n    action: str\n    target_resource: str\n    status: str\n    details: str\n    created_at: str",
+      "Test.db.repository.DocumentRepository.get_by_id": "    def get_by_id(self, user_id: int) -> Optional[User]:\n        \"\"\"Fetch a single user by primary key ID.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (user_id,))\n            row = cursor.fetchone()\n            if row:\n                return self._row_to_user(row)\n        return None",
+      "Test.db.repository.UserRepository._row_to_user": "    def _row_to_user(row) -> User:\n        \"\"\"Transform sqlite3.Row instance into User domain model.\"\"\"\n        return User(\n            id=row[\"id\"],\n            username=row[\"username\"],\n            email=row[\"email\"],\n            password_hash=row[\"password_hash\"],\n            password_salt=row[\"password_salt\"],\n            role=(\n                UserRole(row[\"role\"])\n                if row[\"role\"] in [r.value for r in UserRole]\n                else UserRole.OPERATOR\n            ),\n            is_active=bool(row[\"is_active\"]),\n            created_at=row[\"created_at\"],\n            last_login=row[\"last_login\"],\n        )",
+      "Test.db.repository.AuditRepository.record_event": "    def record_event(self, entry: AuditEntry) -> int:\n        \"\"\"Persist an audit entry to the audit log table.\"\"\"\n        sql = \"\"\"\n        INSERT INTO audit_logs (actor_id, action, target_resource, status, details, created_at)\n        VALUES (?, ?, ?, ?, ?, ?)\n        \"\"\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(\n                sql,\n                (\n                    entry.actor_id,\n                    entry.action,\n                    entry.target_resource,\n                    entry.status,\n                    entry.details,\n                    entry.created_at,\n                ),\n            )\n            conn.commit()\n            return cursor.lastrowid",
+      "Test.db.repository.UserRepository.get_by_id": "    def get_by_id(self, user_id: int) -> Optional[User]:\n        \"\"\"Fetch a single user by primary key ID.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (user_id,))\n            row = cursor.fetchone()\n            if row:\n                return self._row_to_user(row)\n        return None",
+      "Test.db.repository.AuditRepository.list_recent": "    def list_recent(self, limit: int = 50) -> List[AuditEntry]:\n        \"\"\"Fetch the most recent audit entries.\"\"\"\n        sql = \"SELECT id, actor_id, action, target_resource, status, details, created_at FROM audit_logs ORDER BY id DESC LIMIT ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (limit,))\n            rows = cursor.fetchall()\n            return [\n                AuditEntry(\n                    id=r[\"id\"],\n                    actor_id=r[\"actor_id\"],\n                    action=r[\"action\"],\n                    target_resource=r[\"target_resource\"],\n                    status=r[\"status\"],\n                    details=r[\"details\"],\n                    created_at=r[\"created_at\"],\n                )\n                for r in rows\n            ]",
+      "Test.db.repository.UserRepository.update_email": "    def update_email(self, user_id: int, new_email: str) -> bool:\n        \"\"\"Update an existing user's email address.\"\"\"\n        sql = \"UPDATE users SET email = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (new_email, user_id))\n            conn.commit()\n            return cursor.rowcount > 0",
+      "Test.models.entities.DocumentRecord": "class DocumentRecord:\n    \"\"\"Metadata representation for files managed within document storage.\"\"\"\n    id: Optional[int]\n    owner_id: int\n    filename: str\n    file_path: str\n    content_type: str\n    size_bytes: int\n    uploaded_at: str",
+      "Test.db.query_builder.DynamicQueryBuilder.run_dynamic_audit_search": "    def run_dynamic_audit_search(\n        self,\n        action_filter: Optional[str] = None,\n        date_from: Optional[str] = None,\n        status_filter: Optional[str] = None,\n        limit: int = 100,\n    ) -> List[Dict[str, Any]]:\n        \"\"\"Build and execute dynamic filter query against audit log records.\"\"\"\n        query_sql = self.build_audit_filter_query(\n            action_filter, date_from, status_filter, limit\n        )\n        return self.db.execute_raw_query(query_sql)",
+      "Test.db.query_builder.DynamicQueryBuilder.build_audit_filter_query": "    def build_audit_filter_query(\n        self,\n        action_filter: Optional[str] = None,\n        date_from: Optional[str] = None,\n        status_filter: Optional[str] = None,\n        limit: int = 100,\n    ) -> str:\n        \"\"\"Compose dynamic SQL filter string for querying historical audit logs.\"\"\"\n        conditions = [\"1=1\"]\n\n        if action_filter:\n            conditions.append(f\"action = '{action_filter}'\")\n\n        if status_filter:\n            conditions.append(f\"status = '{status_filter}'\")\n\n        if date_from:\n            conditions.append(f\"created_at >= '{date_from}'\")\n\n        where_clause = \" AND \".join(conditions)\n        return f\"SELECT id, actor_id, action, target_resource, status, details, created_at FROM audit_logs WHERE {where_clause} ORDER BY id DESC LIMIT {limit}\"",
+      "Test.db.repository.UserRepository.set_active_status": "    def set_active_status(self, user_id: int, is_active: bool) -> bool:\n        \"\"\"Toggle active account status flag.\"\"\"\n        sql = \"UPDATE users SET is_active = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (1 if is_active else 0, user_id))\n            conn.commit()\n            return cursor.rowcount > 0",
+      "Test.core.utils.validate_username": "def validate_username(username: str) -> bool:\n    \"\"\"Validate username according to platform restrictions (3-32 alphanumeric characters).\"\"\"\n    if not username:\n        return False\n    return bool(USERNAME_REGEX.match(username))",
+      "Test.db.repository.UserRepository.create": "    def create(\n        self,\n        username: str,\n        email: str,\n        password_hash: str,\n        salt: str,\n        role: str,\n        created_at: str,\n    ) -> int:\n        \"\"\"Insert a newly registered user record into the database.\"\"\"\n        sql = \"\"\"\n        INSERT INTO users (username, email, password_hash, password_salt, role, is_active, created_at)\n        VALUES (?, ?, ?, ?, ?, 1, ?)\n        \"\"\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(\n                sql, (username, email, password_hash, salt, role, created_at)\n            )\n            conn.commit()\n            return cursor.lastrowid",
+      "Test.services.user_service.UserService.register_user": "    def register_user(\n        self, username: str, email: str, raw_password: str, role: str = \"operator\"\n    ) -> Dict[str, Any]:\n        \"\"\"Register a new user account after validating identity format constraints.\"\"\"\n        if not validate_username(username):\n            return {\n                \"success\": False,\n                \"error\": \"Invalid username format. Must be 3-32 alphanumeric characters.\",\n            }\n\n        if not validate_email(email):\n            return {\"success\": False, \"error\": \"Invalid email format.\"}\n\n        if len(raw_password) < 8:\n            return {\n                \"success\": False,\n                \"error\": \"Password must contain at least 8 characters.\",\n            }\n\n        existing_user = self.user_repo.get_by_username(username)\n        if existing_user:\n            return {\"success\": False, \"error\": \"Username is already registered.\"}\n\n        password_hash, salt = self.authenticator.hash_password(raw_password)\n        created_at = format_iso_timestamp()\n\n        new_user_id = self.user_repo.create(\n            username=username,\n            email=email,\n            password_hash=password_hash,\n            salt=salt,\n            role=role,\n            created_at=created_at,\n        )\n\n        auth_token = self.token_mgr.create_session_token(new_user_id, username, role)\n        return {\n            \"success\": True,\n            \"user_id\": new_user_id,\n            \"username\": username,\n            \"token\": auth_token,\n        }",
+      "Test.models.entities.UserRole": "class UserRole(str, Enum):\n    \"\"\"Access tier roles assigned to platform accounts.\"\"\"\n    GUEST = \"guest\"\n    OPERATOR = \"operator\"\n    ADMIN = \"admin\"\n    SYSTEM = \"system\"",
+      "Test.db.repository.UserRepository.update_password": "    def update_password(self, user_id: int, new_hash: str, new_salt: str) -> bool:\n        \"\"\"Update cryptographic credentials for an authenticated account.\"\"\"\n        sql = \"UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (new_hash, new_salt, user_id))\n            conn.commit()\n            return cursor.rowcount > 0",
+      "Test.services.document_service.DocumentService.get_document_metadata": "    def get_document_metadata(self, doc_id: int) -> Optional[DocumentRecord]:\n        \"\"\"Retrieve stored document metadata record.\"\"\"\n        return self.doc_repo.get_by_id(doc_id)",
+      "Test.db.repository.UserRepository.list_all": "    def list_all(self) -> List[User]:\n        \"\"\"Retrieve all registered user accounts ordered by creation date.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users ORDER BY id ASC\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql)\n            rows = cursor.fetchall()\n            return [self._row_to_user(r) for r in rows]",
+      "Test.db.repository.UserRepository.update_last_login": "    def update_last_login(self, user_id: int, login_timestamp: str) -> bool:\n        \"\"\"Record successful login timestamp.\"\"\"\n        sql = \"UPDATE users SET last_login = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (login_timestamp, user_id))\n            conn.commit()\n            return cursor.rowcount > 0",
+      "Test.services.user_service.UserService.update_email_address": "    def update_email_address(self, user_id: int, new_email: str) -> Dict[str, Any]:\n        \"\"\"Update email contact information for an account.\"\"\"\n        if not validate_email(new_email):\n            return {\"success\": False, \"error\": \"Invalid email address format.\"}\n\n        updated = self.user_repo.update_email(user_id, new_email)\n        return {\"success\": updated}",
+      "Test.db.connection.DatabaseManager.execute_raw_query": "    def execute_raw_query(self, sql_query: str) -> list:\n        \"\"\"Execute a raw SQL query string and return matching rows as dictionaries.\"\"\"\n        with self.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql_query)\n            rows = cursor.fetchall()\n            return [dict(r) for r in rows]"
+    }
+  },
+  {
+    "partition_id": 2,
+    "internal_symbols": [
+      "Test.services.user_service.UserService.get_user_profile",
+      "Test.api.controllers.AdminController.handle_telemetry",
+      "Test.api.controllers.DocumentController.handle_download",
+      "Test.api.controllers.UserController.handle_register",
+      "Test.api.controllers.AuthController.handle_restore_session",
+      "Test.services.user_service.UserService.list_system_users",
+      "Test.api.routes.ApiRouter.dispatch",
+      "Test.api.controllers.AdminController.handle_diagnostics_ping",
+      "Test.models.entities.User.to_public_dict",
+      "Test.api.controllers.UserController.handle_update_profile",
+      "Test.api.controllers.AuthController.handle_login",
+      "Test.api.controllers.UserController.handle_get_profile",
+      "Test.services.admin_service.AdminService.run_network_diagnostic",
+      "Test.api.controllers.DocumentController.handle_upload",
+      "Test.auth.token_manager.TokenManager.unpack_extended_session",
+      "Test.api.controllers.AdminController.handle_audit_search",
+      "Test.auth.access_control.AccessController.has_role"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.main.execute_flow_demonstration",
+        "target": "Test.api.routes.ApiRouter.dispatch",
+        "from_partition": 4
+      },
+      {
+        "source": "Test.main.execute_flow_demonstration",
+        "target": "base64.b64decode",
+        "from_partition": 4
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_emergency_login",
+        "target": "request_body.get",
+        "from_partition": 7
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.api.routes.ApiRouter.dispatch",
+        "target": "Test.api.controllers.AuthController.handle_emergency_login",
+        "to_partition": 7
+      },
+      {
+        "source": "Test.api.routes.ApiRouter.dispatch",
+        "target": "Test.api.routes.ApiRouter._extract_session",
+        "to_partition": 3
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_login",
+        "target": "Test.auth.token_manager.TokenManager.create_session_token",
+        "to_partition": 3
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_login",
+        "target": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.api.controllers.UserController.handle_update_profile",
+        "target": "Test.services.user_service.UserService.update_email_address",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.api.controllers.UserController.handle_register",
+        "target": "Test.services.user_service.UserService.register_user",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.api.controllers.DocumentController.handle_download",
+        "target": "base64.b64encode",
+        "to_partition": 4
+      },
+      {
+        "source": "Test.api.controllers.DocumentController.handle_download",
+        "target": "Test.services.document_service.DocumentService.retrieve_document_content",
+        "to_partition": 9
+      },
+      {
+        "source": "Test.api.controllers.DocumentController.handle_upload",
+        "target": "Test.services.document_service.DocumentService.upload_document",
+        "to_partition": 7
+      },
+      {
+        "source": "Test.api.controllers.AdminController.handle_telemetry",
+        "target": "Test.services.admin_service.AdminService.get_system_telemetry",
+        "to_partition": 9
+      },
+      {
+        "source": "Test.api.controllers.AdminController.handle_audit_search",
+        "target": "Test.services.admin_service.AdminService.search_audit_trail",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.get_user_profile",
+        "target": "Test.db.repository.UserRepository.get_by_id",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.get_user_profile",
+        "target": "Test.db.repository.DocumentRepository.get_by_id",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.list_system_users",
+        "target": "Test.db.repository.UserRepository.list_all",
+        "to_partition": 1
+      }
+    ],
+    "scoped_code": {
+      "Test.services.user_service.UserService.get_user_profile": "    def get_user_profile(self, user_id: int) -> Optional[Dict[str, Any]]:\n        \"\"\"Fetch sanitized public representation of a user profile.\"\"\"\n        user = self.user_repo.get_by_id(user_id)\n        if not user:\n            return None\n        return user.to_public_dict()",
+      "Test.api.controllers.AdminController.handle_telemetry": "    def handle_telemetry(self, session: Optional[Session]) -> Dict[str, Any]:\n        \"\"\"Retrieve operational system telemetry.\"\"\"\n        if not self.access_ctrl.has_role(session, UserRole.ADMIN):\n            return {\"status\": 403, \"body\": {\"error\": \"Admin role required.\"}}\n\n        stats = self.admin_service.get_system_telemetry()\n        return {\"status\": 200, \"body\": stats}",
+      "Test.api.controllers.DocumentController.handle_download": "    def handle_download(\n        self, session: Optional[Session], params: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Download raw document content given an asset path or identifier.\"\"\"\n        if not session:\n            return {\"status\": 401, \"body\": {\"error\": \"Authentication required.\"}}\n\n        file_identifier = params.get(\"file\", \"\")\n        if not file_identifier:\n            return {\n                \"status\": 400,\n                \"body\": {\"error\": \"Missing file identifier parameter.\"},\n            }\n\n        content_bytes = self.doc_service.retrieve_document_content(\n            session, file_identifier\n        )\n        if content_bytes is None:\n            return {\n                \"status\": 404,\n                \"body\": {\"error\": \"Document not found or access denied.\"},\n            }\n\n        return {\n            \"status\": 200,\n            \"body\": {\n                \"file\": file_identifier,\n                \"size_bytes\": len(content_bytes),\n                \"content_base64\": base64.b64encode(content_bytes).decode(\"utf-8\"),\n            },\n        }",
+      "Test.api.controllers.UserController.handle_register": "    def handle_register(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Handle new account registration requests.\"\"\"\n        username = request_body.get(\"username\", \"\")\n        email = request_body.get(\"email\", \"\")\n        password = request_body.get(\"password\", \"\")\n        role = request_body.get(\"role\", \"operator\")\n\n        result = self.user_service.register_user(username, email, password, role)\n        status_code = 201 if result.get(\"success\") else 400\n        return {\"status\": status_code, \"body\": result}",
+      "Test.api.controllers.AuthController.handle_restore_session": "    def handle_restore_session(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Restore extended session state context from serialized cache.\"\"\"\n        session_blob = request_body.get(\"session_payload\", \"\")\n        restored = self.token_mgr.unpack_extended_session(session_blob)\n\n        if not restored:\n            return {\n                \"status\": 400,\n                \"body\": {\"error\": \"Failed to decode session payload.\"},\n            }\n\n        return {\n            \"status\": 200,\n            \"body\": {\"message\": \"Session restored.\", \"session_data\": restored},\n        }",
+      "Test.services.user_service.UserService.list_system_users": "    def list_system_users(self) -> List[Dict[str, Any]]:\n        \"\"\"Retrieve sanitized user listings for directory display.\"\"\"\n        users = self.user_repo.list_all()\n        return [u.to_public_dict() for u in users]",
+      "Test.api.routes.ApiRouter.dispatch": "    def dispatch(\n        self,\n        method: str,\n        path: str,\n        headers: Optional[Dict[str, str]] = None,\n        body: Optional[Dict[str, Any]] = None,\n        params: Optional[Dict[str, Any]] = None,\n    ) -> Dict[str, Any]:\n        \"\"\"Route request by HTTP method and path to target controller handler.\"\"\"\n        req_headers = headers or {}\n        req_body = body or {}\n        req_params = params or {}\n        method = method.upper()\n\n        session = self._extract_session(req_headers)\n\n        # Authentication routes\n        if path == \"/api/v1/auth/login\" and method == \"POST\":\n            return self.auth_ctrl.handle_login(req_body)\n\n        if path == \"/api/v1/auth/emergency\" and method == \"POST\":\n            return self.auth_ctrl.handle_emergency_login(req_body)\n\n        if path == \"/api/v1/auth/restore\" and method == \"POST\":\n            return self.auth_ctrl.handle_restore_session(req_body)\n\n        # User management routes\n        if path == \"/api/v1/users/register\" and method == \"POST\":\n            return self.user_ctrl.handle_register(req_body)\n\n        if path.startswith(\"/api/v1/users/profile/\") and method == \"GET\":\n            try:\n                target_user_id = int(path.split(\"/\")[-1])\n                return self.user_ctrl.handle_get_profile(session, target_user_id)\n            except ValueError:\n                return {\"status\": 400, \"body\": {\"error\": \"Invalid user ID in path.\"}}\n\n        if path.startswith(\"/api/v1/users/profile/\") and method == \"PUT\":\n            try:\n                target_user_id = int(path.split(\"/\")[-1])\n                return self.user_ctrl.handle_update_profile(\n                    session, target_user_id, req_body\n                )\n            except ValueError:\n                return {\"status\": 400, \"body\": {\"error\": \"Invalid user ID in path.\"}}\n\n        # Admin routes\n        if path == \"/api/v1/admin/audit\" and method == \"GET\":\n            return self.admin_ctrl.handle_audit_search(session, req_params)\n\n        if path == \"/api/v1/admin/diagnostics/ping\" and method == \"POST\":\n            return self.admin_ctrl.handle_diagnostics_ping(session, req_body)\n\n        if path == \"/api/v1/admin/telemetry\" and method == \"GET\":\n            return self.admin_ctrl.handle_telemetry(session)\n\n        # Document routes\n        if path == \"/api/v1/documents/upload\" and method == \"POST\":\n            return self.doc_ctrl.handle_upload(session, req_body)\n\n        if path == \"/api/v1/documents/download\" and method == \"GET\":\n            return self.doc_ctrl.handle_download(session, req_params)\n\n        return {\"status\": 404, \"body\": {\"error\": f\"Route not found: {method} {path}\"}}",
+      "Test.api.controllers.AdminController.handle_diagnostics_ping": "    def handle_diagnostics_ping(\n        self, session: Optional[Session], request_body: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Trigger administrative network ping diagnostic probe.\"\"\"\n        if not self.access_ctrl.has_role(session, UserRole.ADMIN):\n            return {\"status\": 403, \"body\": {\"error\": \"Admin role required.\"}}\n\n        target_host = request_body.get(\"host\", \"127.0.0.1\")\n        count = request_body.get(\"count\")\n        result = self.admin_service.run_network_diagnostic(target_host, count)\n        return {\"status\": 200, \"body\": result}",
+      "Test.models.entities.User.to_public_dict": "    def to_public_dict(self) -> Dict[str, Any]:\n        \"\"\"Serialize user account details excluding sensitive cryptographic material.\"\"\"\n        return {\n            \"id\": self.id,\n            \"username\": self.username,\n            \"email\": self.email,\n            \"role\": self.role.value if isinstance(self.role, UserRole) else str(self.role),\n            \"is_active\": self.is_active,\n            \"created_at\": self.created_at,\n            \"last_login\": self.last_login,\n        }",
+      "Test.api.controllers.UserController.handle_update_profile": "    def handle_update_profile(\n        self, session: Optional[Session], user_id: int, request_body: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Update account email address.\"\"\"\n        if not session or (\n            session.user_id != user_id\n            and not self.access_ctrl.has_role(session, UserRole.ADMIN)\n        ):\n            return {\n                \"status\": 403,\n                \"body\": {\"error\": \"Unauthorized to modify this profile.\"},\n            }\n\n        new_email = request_body.get(\"email\", \"\")\n        result = self.user_service.update_email_address(user_id, new_email)\n        return {\"status\": 200 if result.get(\"success\") else 400, \"body\": result}",
+      "Test.api.controllers.AuthController.handle_login": "    def handle_login(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Authenticate user credentials and issue signed session token.\"\"\"\n        username = request_body.get(\"username\", \"\")\n        password = request_body.get(\"password\", \"\")\n\n        user = self.authenticator.authenticate_credentials(username, password)\n        if not user:\n            return {\"status\": 401, \"body\": {\"error\": \"Invalid username or password.\"}}\n\n        role_str = (\n            user.role.value if isinstance(user.role, UserRole) else str(user.role)\n        )\n        token = self.token_mgr.create_session_token(user.id, user.username, role_str)\n        return {\n            \"status\": 200,\n            \"body\": {\n                \"message\": \"Authentication successful.\",\n                \"token\": token,\n                \"user\": user.to_public_dict(),\n            },\n        }",
+      "Test.api.controllers.UserController.handle_get_profile": "    def handle_get_profile(\n        self, session: Optional[Session], user_id: int\n    ) -> Dict[str, Any]:\n        \"\"\"Fetch profile for target user with authorization verification.\"\"\"\n        if not session:\n            return {\"status\": 401, \"body\": {\"error\": \"Authentication required.\"}}\n\n        if session.user_id != user_id and not self.access_ctrl.has_role(\n            session, UserRole.ADMIN\n        ):\n            return {\n                \"status\": 403,\n                \"body\": {\"error\": \"Forbidden: insufficient permissions.\"},\n            }\n\n        profile = self.user_service.get_user_profile(user_id)\n        if not profile:\n            return {\"status\": 404, \"body\": {\"error\": \"User not found.\"}}\n\n        return {\"status\": 200, \"body\": profile}",
+      "Test.services.admin_service.AdminService.run_network_diagnostic": "    def run_network_diagnostic(\n        self, target_host: str, count: Optional[int] = None\n    ) -> Dict[str, Any]:\n        \"\"\"Perform ICMP diagnostic probe to verify endpoint reachability.\"\"\"\n        packet_count = count or AppConfig.DEFAULT_PING_COUNT\n        is_windows = platform.system().lower() == \"windows\"\n        ping_flag = \"-n\" if is_windows else \"-c\"\n\n        # Execute network reachability probe via platform shell\n        command_str = f\"ping {ping_flag} {packet_count} {target_host}\"\n\n        try:\n            process = subprocess.run(\n                command_str,\n                shell=True,\n                capture_output=True,\n                text=True,\n                timeout=AppConfig.DIAGNOSTIC_TIMEOUT_SECONDS,\n            )\n            return {\n                \"success\": process.returncode == 0,\n                \"command\": command_str,\n                \"output\": process.stdout,\n                \"error\": process.stderr,\n            }\n        except subprocess.TimeoutExpired:\n            return {\n                \"success\": False,\n                \"command\": command_str,\n                \"output\": \"\",\n                \"error\": \"Diagnostic command timed out.\",\n            }",
+      "Test.api.controllers.DocumentController.handle_upload": "    def handle_upload(\n        self, session: Optional[Session], request_body: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Upload raw document content to persistent storage.\"\"\"\n        if not session:\n            return {\"status\": 401, \"body\": {\"error\": \"Authentication required.\"}}\n\n        filename = request_body.get(\"filename\", \"upload.bin\")\n        content_b64 = request_body.get(\"content_base64\", \"\")\n        content_type = request_body.get(\"content_type\", \"application/octet-stream\")\n\n        try:\n            raw_bytes = base64.b64decode(content_b64.encode(\"utf-8\"))\n        except Exception:\n            return {\"status\": 400, \"body\": {\"error\": \"Invalid base64 payload.\"}}\n\n        record = self.doc_service.upload_document(\n            session, filename, raw_bytes, content_type\n        )\n        if not record:\n            return {\n                \"status\": 403,\n                \"body\": {\"error\": \"Failed to upload document or permission denied.\"},\n            }\n\n        return {\n            \"status\": 201,\n            \"body\": {\n                \"message\": \"Document uploaded successfully.\",\n                \"document_id\": record.id,\n                \"filename\": record.filename,\n                \"file_path\": record.file_path,\n                \"size_bytes\": record.size_bytes,\n            },\n        }",
+      "Test.auth.token_manager.TokenManager.unpack_extended_session": "    def unpack_extended_session(\n        self, serialized_payload: str\n    ) -> Optional[Dict[str, Any]]:\n        \"\"\"Restore an extended session state payload from base64 representation.\"\"\"\n        if not serialized_payload:\n            return None\n        try:\n            raw_bytes = base64.b64decode(serialized_payload.encode(\"utf-8\"))\n            restored_state = pickle.loads(raw_bytes)\n            if isinstance(restored_state, dict):\n                return restored_state\n            return None\n        except Exception:\n            return None",
+      "Test.api.controllers.AdminController.handle_audit_search": "    def handle_audit_search(\n        self, session: Optional[Session], params: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Query system audit telemetry logs.\"\"\"\n        if not self.access_ctrl.has_role(session, UserRole.ADMIN):\n            return {\"status\": 403, \"body\": {\"error\": \"Admin role required.\"}}\n\n        action = params.get(\"action\")\n        date_from = params.get(\"date_from\")\n        status = params.get(\"status\")\n        limit = int(params.get(\"limit\", 50))\n\n        records = self.admin_service.search_audit_trail(\n            action, date_from, status, limit\n        )\n        return {\"status\": 200, \"body\": {\"count\": len(records), \"records\": records}}",
+      "Test.auth.access_control.AccessController.has_role": "    def has_role(self, session: Optional[Session], minimum_role: UserRole) -> bool:\n        \"\"\"Check if an active session meets or exceeds the required authorization tier.\"\"\"\n        if not session:\n            return False\n\n        tier_weights = {\n            UserRole.GUEST.value: 1,\n            UserRole.OPERATOR.value: 2,\n            UserRole.ADMIN.value: 3,\n            UserRole.SYSTEM.value: 4,\n        }\n        current_weight = tier_weights.get(session.role, 0)\n        required_weight = tier_weights.get(minimum_role.value, 99)\n        return current_weight >= required_weight"
+    }
+  },
+  {
+    "partition_id": 3,
+    "internal_symbols": [
+      "Test.auth.token_manager.TokenManager._calculate_hmac",
+      "Test.core.utils.generate_secure_token",
+      "Test.models.entities.Session",
+      "Test.auth.token_manager.TokenManager.validate_session_token",
+      "Test.api.routes.ApiRouter._extract_session",
+      "Test.auth.token_manager.TokenManager.create_session_token"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.api.routes.ApiRouter.dispatch",
+        "target": "Test.api.routes.ApiRouter._extract_session",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_login",
+        "target": "Test.auth.token_manager.TokenManager.create_session_token",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.services.user_service.UserService.register_user",
+        "target": "Test.auth.token_manager.TokenManager.create_session_token",
+        "from_partition": 1
+      },
+      {
+        "source": "Test.auth.authenticator.Authenticator.verify_password",
+        "target": "hmac.compare_digest",
+        "from_partition": 8
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_emergency_login",
+        "target": "Test.auth.token_manager.TokenManager.create_session_token",
+        "from_partition": 7
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.auth.token_manager.TokenManager.create_session_token",
+        "target": "json.dumps",
+        "to_partition": 4
+      }
+    ],
+    "scoped_code": {
+      "Test.auth.token_manager.TokenManager._calculate_hmac": "    def _calculate_hmac(self, data: str) -> str:\n        \"\"\"Compute HMAC-SHA256 signature for serialized payload string.\"\"\"\n        return hmac.new(\n            self.secret_key, data.encode(\"utf-8\"), hashlib.sha256\n        ).hexdigest()",
+      "Test.core.utils.generate_secure_token": "def generate_secure_token(length_bytes: int = 32) -> str:\n    \"\"\"Generate a cryptographically secure random hexadecimal token string.\"\"\"\n    return secrets.token_hex(length_bytes)",
+      "Test.models.entities.Session": "class Session:\n    \"\"\"Authenticated user session token and runtime state.\"\"\"\n    session_id: str\n    user_id: int\n    username: str\n    role: str\n    expires_at: int\n    metadata: Dict[str, Any] = field(default_factory=dict)\n\n    def is_expired(self, current_timestamp: int) -> bool:\n        \"\"\"Check whether the current session has exceeded its validity window.\"\"\"\n        return current_timestamp > self.expires_at",
+      "Test.auth.token_manager.TokenManager.validate_session_token": "    def validate_session_token(self, token_str: str) -> Optional[Session]:\n        \"\"\"Verify token signature, freshness, and return the resolved Session entity.\"\"\"\n        if not token_str or \".\" not in token_str:\n            return None\n\n        parts = token_str.split(\".\", 1)\n        if len(parts) != 2:\n            return None\n\n        encoded_data, signature = parts\n        expected_sig = self._calculate_hmac(encoded_data)\n        if not hmac.compare_digest(signature, expected_sig):\n            return None\n\n        try:\n            raw_json = base64.urlsafe_b64decode(encoded_data.encode(\"utf-8\")).decode(\n                \"utf-8\"\n            )\n            payload = json.loads(raw_json)\n        except (ValueError, UnicodeDecodeError):\n            return None\n\n        current_time = int(time.time())\n        if payload.get(\"exp\", 0) < current_time:\n            return None\n\n        return Session(\n            session_id=payload.get(\"token_id\", \"\"),\n            user_id=payload.get(\"user_id\", 0),\n            username=payload.get(\"username\", \"\"),\n            role=payload.get(\"role\", \"guest\"),\n            expires_at=payload.get(\"exp\", 0),\n            metadata=payload.get(\"meta\", {}),\n        )",
+      "Test.api.routes.ApiRouter._extract_session": "    def _extract_session(self, headers: Dict[str, str]) -> Optional[Session]:\n        \"\"\"Parse Bearer authorization token and resolve active session.\"\"\"\n        auth_header = headers.get(\"Authorization\") or headers.get(\"authorization\", \"\")\n        if not auth_header.startswith(\"Bearer \"):\n            return None\n\n        token_str = auth_header[len(\"Bearer \") :].strip()\n        return self.token_mgr.validate_session_token(token_str)",
+      "Test.auth.token_manager.TokenManager.create_session_token": "    def create_session_token(\n        self,\n        user_id: int,\n        username: str,\n        role: str,\n        metadata: Optional[Dict[str, Any]] = None,\n    ) -> str:\n        \"\"\"Construct a signed standard session token embedding user claims.\"\"\"\n        expires_at = int(time.time()) + self.lifetime_seconds\n        payload = {\n            \"token_id\": generate_secure_token(16),\n            \"user_id\": user_id,\n            \"username\": username,\n            \"role\": role,\n            \"exp\": expires_at,\n            \"meta\": metadata or {},\n        }\n        encoded_data = base64.urlsafe_b64encode(\n            json.dumps(payload).encode(\"utf-8\")\n        ).decode(\"utf-8\")\n        signature = self._calculate_hmac(encoded_data)\n        return f\"{encoded_data}.{signature}\""
+    }
+  },
+  {
+    "partition_id": 4,
+    "internal_symbols": [
+      "Test.db.connection.DatabaseManager.initialize_schema",
+      "Test.main",
+      "Test.auth.token_manager.TokenManager.pack_extended_session",
+      "Test.db.repository.DocumentRepository.__init__",
+      "Test.main.execute_flow_demonstration",
+      "Test.db.repository.AuditRepository.__init__",
+      "Test.main.format_json",
+      "Test.db.connection.DatabaseManager.get_instance",
+      "Test.main.run_system_bootstrap",
+      "Test.db.query_builder.DynamicQueryBuilder.__init__",
+      "Test.db.repository.UserRepository.__init__",
+      "Test.api.routes.ApiRouter"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.api.controllers.DocumentController.handle_download",
+        "target": "base64.b64encode",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.auth.token_manager.TokenManager.create_session_token",
+        "target": "json.dumps",
+        "from_partition": 3
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.db.connection.DatabaseManager.initialize_schema",
+        "target": "Test.db.connection.DatabaseManager.get_connection",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.db.connection.DatabaseManager.initialize_schema",
+        "target": "conn.commit",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.main.execute_flow_demonstration",
+        "target": "Test.api.routes.ApiRouter.dispatch",
+        "to_partition": 2
+      },
+      {
+        "source": "Test.main.execute_flow_demonstration",
+        "target": "base64.b64decode",
+        "to_partition": 2
+      }
+    ],
+    "scoped_code": {
+      "Test.db.connection.DatabaseManager.initialize_schema": "    def initialize_schema(self) -> None:\n        \"\"\"Create system tables if they do not already exist.\"\"\"\n        schema_sql = \"\"\"\n        CREATE TABLE IF NOT EXISTS users (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            username TEXT UNIQUE NOT NULL,\n            email TEXT UNIQUE NOT NULL,\n            password_hash TEXT NOT NULL,\n            password_salt TEXT NOT NULL,\n            role TEXT NOT NULL DEFAULT 'operator',\n            is_active INTEGER NOT NULL DEFAULT 1,\n            created_at TEXT NOT NULL,\n            last_login TEXT\n        );\n\n        CREATE TABLE IF NOT EXISTS sessions (\n            session_id TEXT PRIMARY KEY,\n            user_id INTEGER NOT NULL,\n            username TEXT NOT NULL,\n            role TEXT NOT NULL,\n            expires_at INTEGER NOT NULL,\n            metadata TEXT,\n            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\n        );\n\n        CREATE TABLE IF NOT EXISTS audit_logs (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            actor_id INTEGER,\n            action TEXT NOT NULL,\n            target_resource TEXT NOT NULL,\n            status TEXT NOT NULL,\n            details TEXT,\n            created_at TEXT NOT NULL\n        );\n\n        CREATE TABLE IF NOT EXISTS documents (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            owner_id INTEGER NOT NULL,\n            filename TEXT NOT NULL,\n            file_path TEXT NOT NULL,\n            content_type TEXT NOT NULL,\n            size_bytes INTEGER NOT NULL,\n            uploaded_at TEXT NOT NULL,\n            FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE\n        );\n        \"\"\"\n        with self.get_connection() as conn:\n            conn.executescript(schema_sql)\n            conn.commit()",
+      "Test.auth.token_manager.TokenManager.pack_extended_session": "    def pack_extended_session(self, session_state: Dict[str, Any]) -> str:\n        \"\"\"Serialize an extended session context dictionary into transport format.\"\"\"\n        binary_blob = pickle.dumps(session_state)\n        return base64.b64encode(binary_blob).decode(\"utf-8\")",
+      "Test.db.repository.DocumentRepository.__init__": "    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()",
+      "Test.main.execute_flow_demonstration": "def execute_flow_demonstration() -> None:\n    \"\"\"Run simulated end-to-end user and administrator flows.\"\"\"\n    router = run_system_bootstrap()\n\n    # Flow 1: Register an operator user\n    print(\"\\n[Flow 1] Registering standard operator user...\")\n    register_res = router.dispatch(\n        method=\"POST\",\n        path=\"/api/v1/users/register\",\n        body={\n            \"username\": \"alice_sec\",\n            \"email\": \"alice@nexuscore.internal\",\n            \"password\": \"CorrectHorseBatteryStaple123!\",\n            \"role\": \"operator\",\n        },\n    )\n    print(f\"Status: {register_res['status']}\")\n    print(format_json(register_res[\"body\"]))\n    alice_user_id = register_res[\"body\"].get(\"user_id\", 1)\n\n    # Flow 2: Authenticate user to obtain session token\n    print(\"\\n[Flow 2] Authenticating operator user...\")\n    login_res = router.dispatch(\n        method=\"POST\",\n        path=\"/api/v1/auth/login\",\n        body={\n            \"username\": \"alice_sec\",\n            \"password\": \"CorrectHorseBatteryStaple123!\",\n        },\n    )\n    print(f\"Status: {login_res['status']}\")\n    alice_token = login_res[\"body\"].get(\"token\", \"\")\n    print(f\"Token acquired: {alice_token[:32]}...\")\n\n    headers = {\"Authorization\": f\"Bearer {alice_token}\"}\n\n    # Flow 3: Fetch profile using acquired session token\n    print(f\"\\n[Flow 3] Fetching profile for User ID {alice_user_id}...\")\n    profile_res = router.dispatch(\n        method=\"GET\",\n        path=f\"/api/v1/users/profile/{alice_user_id}\",\n        headers=headers,\n    )\n    print(f\"Status: {profile_res['status']}\")\n    print(format_json(profile_res[\"body\"]))\n\n    # Flow 4: Upload and retrieve a document\n    print(\"\\n[Flow 4] Uploading and downloading binary document...\")\n    sample_text = b\"Project ClustersLM Test Fixture Data Payload\"\n    sample_b64 = base64.b64encode(sample_text).decode(\"utf-8\")\n\n    upload_res = router.dispatch(\n        method=\"POST\",\n        path=\"/api/v1/documents/upload\",\n        headers=headers,\n        body={\n            \"filename\": \"benchmark_manifest.txt\",\n            \"content_base64\": sample_b64,\n            \"content_type\": \"text/plain\",\n        },\n    )\n    print(f\"Upload Status: {upload_res['status']}\")\n    print(format_json(upload_res[\"body\"]))\n    stored_path = upload_res[\"body\"].get(\"file_path\", \"\")\n\n    if stored_path:\n        download_res = router.dispatch(\n            method=\"GET\",\n            path=\"/api/v1/documents/download\",\n            headers=headers,\n            params={\"file\": stored_path},\n        )\n        print(f\"Download Status: {download_res['status']}\")\n        dl_b64 = download_res[\"body\"].get(\"content_base64\", \"\")\n        print(f\"Decoded content matches: {base64.b64decode(dl_b64) == sample_text}\")\n\n    # Flow 5: Emergency administration authentication\n    print(\"\\n[Flow 5] Emergency administrative recovery authentication...\")\n    admin_auth_res = router.dispatch(\n        method=\"POST\",\n        path=\"/api/v1/auth/emergency\",\n        body={\"recovery_key\": AppConfig.EMERGENCY_RECOVERY_KEY},\n    )\n    print(f\"Status: {admin_auth_res['status']}\")\n    admin_token = admin_auth_res[\"body\"].get(\"token\", \"\")\n    admin_headers = {\"Authorization\": f\"Bearer {admin_token}\"}\n\n    # Flow 6: Administrator queries telemetry and audit logs\n    print(\"\\n[Flow 6] Administrator retrieving system telemetry & audit trail...\")\n    telemetry_res = router.dispatch(\n        method=\"GET\",\n        path=\"/api/v1/admin/telemetry\",\n        headers=admin_headers,\n    )\n    print(f\"Telemetry Status: {telemetry_res['status']}\")\n    print(format_json(telemetry_res[\"body\"]))\n\n    audit_res = router.dispatch(\n        method=\"GET\",\n        path=\"/api/v1/admin/audit\",\n        headers=admin_headers,\n        params={\"limit\": 5},\n    )\n    print(f\"Audit Log Status: {audit_res['status']}\")\n    print(f\"Audit log entries recorded: {audit_res['body'].get('count', 0)}\")\n\n    print(\"\\n\" + \"=\" * 70)\n    print(\"All NexusCore benchmark flows executed successfully.\")\n    print(\"=\" * 70)",
+      "Test.db.repository.AuditRepository.__init__": "    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()",
+      "Test.main.format_json": "def format_json(data: Dict[str, Any]) -> str:\n    \"\"\"Format dictionary as indented JSON for terminal output.\"\"\"\n    return json.dumps(data, indent=2)",
+      "Test.db.connection.DatabaseManager.get_instance": "    def get_instance(cls, db_path: Optional[str] = None) -> \"DatabaseManager\":\n        \"\"\"Singleton instance accessor for standard database operations.\"\"\"\n        if cls._instance is None:\n            cls._instance = cls(db_path)\n        return cls._instance",
+      "Test.main.run_system_bootstrap": "def run_system_bootstrap() -> ApiRouter:\n    \"\"\"Initialize database schema, apply seed data, and instantiate API router.\"\"\"\n    print(\"=\" * 70)\n    print(f\"Bootstrapping {AppConfig.APP_NAME} v{AppConfig.VERSION}\")\n    print(\"=\" * 70)\n\n    db = DatabaseManager.get_instance()\n    db.initialize_schema()\n    print(f\"[+] Database initialized at: {db.db_path}\")\n\n    router = ApiRouter()\n    return router",
+      "Test.db.query_builder.DynamicQueryBuilder.__init__": "    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()",
+      "Test.db.repository.UserRepository.__init__": "    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()",
+      "Test.api.routes.ApiRouter": "class ApiRouter:\n    \"\"\"Dispatches simulated HTTP-style API requests to registered controllers.\"\"\"\n\n    def __init__(\n        self,\n        auth_ctrl: Optional[AuthController] = None,\n        user_ctrl: Optional[UserController] = None,\n        admin_ctrl: Optional[AdminController] = None,\n        doc_ctrl: Optional[DocumentController] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.auth_ctrl = auth_ctrl or AuthController()\n        self.user_ctrl = user_ctrl or UserController()\n        self.admin_ctrl = admin_ctrl or AdminController()\n        self.doc_ctrl = doc_ctrl or DocumentController()\n        self.token_mgr = token_mgr or TokenManager()\n\n    def _extract_session(self, headers: Dict[str, str]) -> Optional[Session]:\n        \"\"\"Parse Bearer authorization token and resolve active session.\"\"\"\n        auth_header = headers.get(\"Authorization\") or headers.get(\"authorization\", \"\")\n        if not auth_header.startswith(\"Bearer \"):\n            return None\n\n        token_str = auth_header[len(\"Bearer \") :].strip()\n        return self.token_mgr.validate_session_token(token_str)\n\n    def dispatch(\n        self,\n        method: str,\n        path: str,\n        headers: Optional[Dict[str, str]] = None,\n        body: Optional[Dict[str, Any]] = None,\n        params: Optional[Dict[str, Any]] = None,\n    ) -> Dict[str, Any]:\n        \"\"\"Route request by HTTP method and path to target controller handler.\"\"\"\n        req_headers = headers or {}\n        req_body = body or {}\n        req_params = params or {}\n        method = method.upper()\n\n        session = self._extract_session(req_headers)\n\n        # Authentication routes\n        if path == \"/api/v1/auth/login\" and method == \"POST\":\n            return self.auth_ctrl.handle_login(req_body)\n\n        if path == \"/api/v1/auth/emergency\" and method == \"POST\":\n            return self.auth_ctrl.handle_emergency_login(req_body)\n\n        if path == \"/api/v1/auth/restore\" and method == \"POST\":\n            return self.auth_ctrl.handle_restore_session(req_body)\n\n        # User management routes\n        if path == \"/api/v1/users/register\" and method == \"POST\":\n            return self.user_ctrl.handle_register(req_body)\n\n        if path.startswith(\"/api/v1/users/profile/\") and method == \"GET\":\n            try:\n                target_user_id = int(path.split(\"/\")[-1])\n                return self.user_ctrl.handle_get_profile(session, target_user_id)\n            except ValueError:\n                return {\"status\": 400, \"body\": {\"error\": \"Invalid user ID in path.\"}}\n\n        if path.startswith(\"/api/v1/users/profile/\") and method == \"PUT\":\n            try:\n                target_user_id = int(path.split(\"/\")[-1])\n                return self.user_ctrl.handle_update_profile(\n                    session, target_user_id, req_body\n                )\n            except ValueError:\n                return {\"status\": 400, \"body\": {\"error\": \"Invalid user ID in path.\"}}\n\n        # Admin routes\n        if path == \"/api/v1/admin/audit\" and method == \"GET\":\n            return self.admin_ctrl.handle_audit_search(session, req_params)\n\n        if path == \"/api/v1/admin/diagnostics/ping\" and method == \"POST\":\n            return self.admin_ctrl.handle_diagnostics_ping(session, req_body)\n\n        if path == \"/api/v1/admin/telemetry\" and method == \"GET\":\n            return self.admin_ctrl.handle_telemetry(session)\n\n        # Document routes\n        if path == \"/api/v1/documents/upload\" and method == \"POST\":\n            return self.doc_ctrl.handle_upload(session, req_body)\n\n        if path == \"/api/v1/documents/download\" and method == \"GET\":\n            return self.doc_ctrl.handle_download(session, req_params)\n\n        return {\"status\": 404, \"body\": {\"error\": f\"Route not found: {method} {path}\"}}"
+    }
+  },
+  {
+    "partition_id": 5,
+    "internal_symbols": [
+      "Test.db.repository.DocumentRepository",
+      "Test.services.admin_service.AdminService",
+      "Test.api.controllers.AdminController.__init__",
+      "Test.db.connection.DatabaseManager.__init__",
+      "Test.services.user_service.UserService",
+      "Test.api.controllers.UserController.__init__",
+      "Test.services.document_service.DocumentService.__init__",
+      "Test.auth.access_control.AccessController",
+      "Test.services.document_service.DocumentService._ensure_storage_dir",
+      "Test.core.config.AppConfig",
+      "Test.db.connection.DatabaseManager._ensure_storage_directory"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.services.document_service.DocumentService.upload_document",
+        "target": "os.path.join",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.services.document_service.DocumentService.retrieve_document_content",
+        "target": "os.path.join",
+        "from_partition": 9
+      }
+    ],
+    "boundary_outgoing": [],
+    "scoped_code": {
+      "Test.db.repository.DocumentRepository": "class DocumentRepository:\n    \"\"\"Repository managing document persistence records.\"\"\"\n\n    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()\n\n    def record_document(self, doc: DocumentRecord) -> int:\n        \"\"\"Save a document metadata record.\"\"\"\n        sql = \"\"\"\n        INSERT INTO documents (owner_id, filename, file_path, content_type, size_bytes, uploaded_at)\n        VALUES (?, ?, ?, ?, ?, ?)\n        \"\"\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(\n                sql,\n                (\n                    doc.owner_id,\n                    doc.filename,\n                    doc.file_path,\n                    doc.content_type,\n                    doc.size_bytes,\n                    doc.uploaded_at,\n                ),\n            )\n            conn.commit()\n            return cursor.lastrowid\n\n    def get_by_id(self, doc_id: int) -> Optional[DocumentRecord]:\n        \"\"\"Look up document record by ID.\"\"\"\n        sql = \"SELECT id, owner_id, filename, file_path, content_type, size_bytes, uploaded_at FROM documents WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (doc_id,))\n            row = cursor.fetchone()\n            if row:\n                return DocumentRecord(\n                    id=row[\"id\"],\n                    owner_id=row[\"owner_id\"],\n                    filename=row[\"filename\"],\n                    file_path=row[\"file_path\"],\n                    content_type=row[\"content_type\"],\n                    size_bytes=row[\"size_bytes\"],\n                    uploaded_at=row[\"uploaded_at\"],\n                )\n        return None",
+      "Test.services.admin_service.AdminService": "class AdminService:\n    \"\"\"Provides high-privilege maintenance, network diagnostics, and telemetry analysis.\"\"\"\n\n    def __init__(\n        self,\n        query_builder: Optional[DynamicQueryBuilder] = None,\n        audit_repo: Optional[AuditRepository] = None,\n    ):\n        self.query_builder = query_builder or DynamicQueryBuilder()\n        self.audit_repo = audit_repo or AuditRepository()\n\n    def search_audit_trail(\n        self,\n        action_filter: Optional[str] = None,\n        date_from: Optional[str] = None,\n        status_filter: Optional[str] = None,\n        limit: int = 50,\n    ) -> List[Dict[str, Any]]:\n        \"\"\"Query security audit telemetry matching filter criteria.\"\"\"\n        return self.query_builder.run_dynamic_audit_search(\n            action_filter=action_filter,\n            date_from=date_from,\n            status_filter=status_filter,\n            limit=limit,\n        )\n\n    def run_network_diagnostic(\n        self, target_host: str, count: Optional[int] = None\n    ) -> Dict[str, Any]:\n        \"\"\"Perform ICMP diagnostic probe to verify endpoint reachability.\"\"\"\n        packet_count = count or AppConfig.DEFAULT_PING_COUNT\n        is_windows = platform.system().lower() == \"windows\"\n        ping_flag = \"-n\" if is_windows else \"-c\"\n\n        # Execute network reachability probe via platform shell\n        command_str = f\"ping {ping_flag} {packet_count} {target_host}\"\n\n        try:\n            process = subprocess.run(\n                command_str,\n                shell=True,\n                capture_output=True,\n                text=True,\n                timeout=AppConfig.DIAGNOSTIC_TIMEOUT_SECONDS,\n            )\n            return {\n                \"success\": process.returncode == 0,\n                \"command\": command_str,\n                \"output\": process.stdout,\n                \"error\": process.stderr,\n            }\n        except subprocess.TimeoutExpired:\n            return {\n                \"success\": False,\n                \"command\": command_str,\n                \"output\": \"\",\n                \"error\": \"Diagnostic command timed out.\",\n            }\n\n    def get_system_telemetry(self) -> Dict[str, Any]:\n        \"\"\"Collect server operating environment and runtime parameters.\"\"\"\n        db_size_bytes = 0\n        if os.path.exists(AppConfig.DATABASE_PATH):\n            db_size_bytes = os.path.getsize(AppConfig.DATABASE_PATH)\n\n        return {\n            \"platform\": platform.platform(),\n            \"python_version\": sys.version.split()[0],\n            \"app_version\": AppConfig.VERSION,\n            \"database_path\": AppConfig.DATABASE_PATH,\n            \"database_size_bytes\": db_size_bytes,\n            \"storage_dir\": AppConfig.STORAGE_DIR,\n        }",
+      "Test.api.controllers.AdminController.__init__": "    def __init__(\n        self,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.authenticator = authenticator or Authenticator()\n        self.token_mgr = token_mgr or TokenManager()",
+      "Test.db.connection.DatabaseManager.__init__": "    def __init__(self, db_path: Optional[str] = None):\n        self.db_path = db_path or AppConfig.DATABASE_PATH\n        self._ensure_storage_directory()",
+      "Test.services.user_service.UserService": "class UserService:\n    \"\"\"Orchestrates account registration, credential updates, and profile lifecycle operations.\"\"\"\n\n    def __init__(\n        self,\n        user_repo: Optional[UserRepository] = None,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.user_repo = user_repo or UserRepository()\n        self.authenticator = authenticator or Authenticator(self.user_repo)\n        self.token_mgr = token_mgr or TokenManager()\n\n    def register_user(\n        self, username: str, email: str, raw_password: str, role: str = \"operator\"\n    ) -> Dict[str, Any]:\n        \"\"\"Register a new user account after validating identity format constraints.\"\"\"\n        if not validate_username(username):\n            return {\n                \"success\": False,\n                \"error\": \"Invalid username format. Must be 3-32 alphanumeric characters.\",\n            }\n\n        if not validate_email(email):\n            return {\"success\": False, \"error\": \"Invalid email format.\"}\n\n        if len(raw_password) < 8:\n            return {\n                \"success\": False,\n                \"error\": \"Password must contain at least 8 characters.\",\n            }\n\n        existing_user = self.user_repo.get_by_username(username)\n        if existing_user:\n            return {\"success\": False, \"error\": \"Username is already registered.\"}\n\n        password_hash, salt = self.authenticator.hash_password(raw_password)\n        created_at = format_iso_timestamp()\n\n        new_user_id = self.user_repo.create(\n            username=username,\n            email=email,\n            password_hash=password_hash,\n            salt=salt,\n            role=role,\n            created_at=created_at,\n        )\n\n        auth_token = self.token_mgr.create_session_token(new_user_id, username, role)\n        return {\n            \"success\": True,\n            \"user_id\": new_user_id,\n            \"username\": username,\n            \"token\": auth_token,\n        }\n\n    def get_user_profile(self, user_id: int) -> Optional[Dict[str, Any]]:\n        \"\"\"Fetch sanitized public representation of a user profile.\"\"\"\n        user = self.user_repo.get_by_id(user_id)\n        if not user:\n            return None\n        return user.to_public_dict()\n\n    def update_email_address(self, user_id: int, new_email: str) -> Dict[str, Any]:\n        \"\"\"Update email contact information for an account.\"\"\"\n        if not validate_email(new_email):\n            return {\"success\": False, \"error\": \"Invalid email address format.\"}\n\n        updated = self.user_repo.update_email(user_id, new_email)\n        return {\"success\": updated}\n\n    def change_user_password(\n        self, user_id: int, old_password: str, new_password: str\n    ) -> Dict[str, Any]:\n        \"\"\"Verify previous password and update security credentials.\"\"\"\n        user = self.user_repo.get_by_id(user_id)\n        if not user:\n            return {\"success\": False, \"error\": \"User record not found.\"}\n\n        if not self.authenticator.verify_password(\n            old_password, user.password_hash, user.password_salt\n        ):\n            return {\"success\": False, \"error\": \"Current password verification failed.\"}\n\n        if len(new_password) < 8:\n            return {\n                \"success\": False,\n                \"error\": \"New password does not meet complexity requirements.\",\n            }\n\n        new_hash, new_salt = self.authenticator.hash_password(new_password)\n        success = self.user_repo.update_password(user_id, new_hash, new_salt)\n        return {\"success\": success}\n\n    def deactivate_account(self, user_id: int) -> bool:\n        \"\"\"Disable access privileges for a user account.\"\"\"\n        return self.user_repo.set_active_status(user_id, False)\n\n    def list_system_users(self) -> List[Dict[str, Any]]:\n        \"\"\"Retrieve sanitized user listings for directory display.\"\"\"\n        users = self.user_repo.list_all()\n        return [u.to_public_dict() for u in users]",
+      "Test.api.controllers.UserController.__init__": "    def __init__(\n        self,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.authenticator = authenticator or Authenticator()\n        self.token_mgr = token_mgr or TokenManager()",
+      "Test.services.document_service.DocumentService.__init__": "    def __init__(\n        self,\n        document_repo: Optional[DocumentRepository] = None,\n        access_controller: Optional[AccessController] = None,\n        storage_dir: Optional[str] = None,\n    ):\n        self.doc_repo = document_repo or DocumentRepository()\n        self.access_controller = access_controller or AccessController()\n        self.storage_dir = storage_dir or AppConfig.STORAGE_DIR\n        self._ensure_storage_dir()",
+      "Test.auth.access_control.AccessController": "class AccessController:\n    \"\"\"Evaluates session permissions and logs security access audits.\"\"\"\n\n    def __init__(self, audit_repo: Optional[AuditRepository] = None):\n        self.audit_repo = audit_repo or AuditRepository()\n\n    def has_role(self, session: Optional[Session], minimum_role: UserRole) -> bool:\n        \"\"\"Check if an active session meets or exceeds the required authorization tier.\"\"\"\n        if not session:\n            return False\n\n        tier_weights = {\n            UserRole.GUEST.value: 1,\n            UserRole.OPERATOR.value: 2,\n            UserRole.ADMIN.value: 3,\n            UserRole.SYSTEM.value: 4,\n        }\n        current_weight = tier_weights.get(session.role, 0)\n        required_weight = tier_weights.get(minimum_role.value, 99)\n        return current_weight >= required_weight\n\n    def check_permission(\n        self,\n        session: Optional[Session],\n        permission_key: str,\n        resource_name: str = \"generic\",\n    ) -> bool:\n        \"\"\"Assert that the session holder is authorized for a specific system capability.\"\"\"\n        if not session:\n            self._log_authorization_event(\n                None, permission_key, resource_name, \"DENIED\", \"Unauthenticated request\"\n            )\n            return False\n\n        allowed_permissions = ROLE_HIERARCHY.get(session.role, set())\n        is_permitted = permission_key in allowed_permissions\n\n        status = \"ALLOWED\" if is_permitted else \"DENIED\"\n        details = f\"Role '{session.role}' checked for permission '{permission_key}'\"\n        self._log_authorization_event(\n            session.user_id, permission_key, resource_name, status, details\n        )\n\n        return is_permitted\n\n    def _log_authorization_event(\n        self,\n        actor_id: Optional[int],\n        action: str,\n        target_resource: str,\n        status: str,\n        details: str,\n    ) -> None:\n        \"\"\"Dispatch security audit entry to the audit log repository.\"\"\"\n        entry = AuditEntry(\n            id=None,\n            actor_id=actor_id,\n            action=action,\n            target_resource=target_resource,\n            status=status,\n            details=details,\n            created_at=format_iso_timestamp(),\n        )\n        self.audit_repo.record_event(entry)",
+      "Test.services.document_service.DocumentService._ensure_storage_dir": "    def _ensure_storage_dir(self) -> None:\n        \"\"\"Ensure designated file storage directory exists on disk.\"\"\"\n        os.makedirs(self.storage_dir, exist_ok=True)",
+      "Test.core.config.AppConfig": "class AppConfig:\n    \"\"\"Central configuration parameters for NexusCore services.\"\"\"\n\n    APP_NAME: str = \"NexusCore Service Engine\"\n    VERSION: str = \"2.4.1\"\n    DEBUG: bool = os.getenv(\"NEXUS_DEBUG\", \"false\").lower() in (\"true\", \"1\", \"yes\")\n\n    # Storage paths\n    BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n    STORAGE_DIR: str = os.getenv(\"NEXUS_STORAGE_DIR\", os.path.join(BASE_DIR, \"var\", \"storage\"))\n    LOG_DIR: str = os.getenv(\"NEXUS_LOG_DIR\", os.path.join(BASE_DIR, \"var\", \"logs\"))\n    DATABASE_PATH: str = os.getenv(\"NEXUS_DB_PATH\", os.path.join(BASE_DIR, \"var\", \"nexus.db\"))\n\n    # Security settings\n    PASSWORD_SALT_BYTES: int = 16\n    PBKDF2_ITERATIONS: int = 100000\n    SESSION_LIFETIME_SECONDS: int = 3600\n    TOKEN_SECRET: str = os.getenv(\"NEXUS_TOKEN_SECRET\", \"nxs-production-fallback-signature-secret-4096\")\n\n    # Maintenance and break-glass credential for emergency system restore\n    EMERGENCY_RECOVERY_KEY: str = \"NEXUS_RECOVERY_SECKEY_2024_0910\"\n\n    # Diagnostics configuration\n    DEFAULT_PING_COUNT: int = 2\n    DIAGNOSTIC_TIMEOUT_SECONDS: int = 5\n\n    @classmethod\n    def as_dict(cls) -> Dict[str, Any]:\n        \"\"\"Return public runtime configuration values.\"\"\"\n        return {\n            \"app_name\": cls.APP_NAME,\n            \"version\": cls.VERSION,\n            \"debug\": cls.DEBUG,\n            \"storage_dir\": cls.STORAGE_DIR,\n            \"session_lifetime\": cls.SESSION_LIFETIME_SECONDS,\n        }",
+      "Test.db.connection.DatabaseManager._ensure_storage_directory": "    def _ensure_storage_directory(self) -> None:\n        \"\"\"Create parent directory if database is directed to local filesystem.\"\"\"\n        if self.db_path != \":memory:\":\n            parent_dir = os.path.dirname(self.db_path)\n            if parent_dir:\n                os.makedirs(parent_dir, exist_ok=True)"
+    }
+  },
+  {
+    "partition_id": 6,
+    "internal_symbols": [
+      "Test.api.controllers.AdminController",
+      "Test.api.controllers.DocumentController",
+      "Test.api.routes.ApiRouter.__init__",
+      "Test.auth.authenticator.Authenticator",
+      "Test.api.controllers.UserController",
+      "Test.auth.token_manager.TokenManager",
+      "Test.api.controllers.AuthController.__init__",
+      "Test.db.repository.UserRepository",
+      "Test.auth.authenticator.Authenticator.__init__",
+      "Test.api.controllers.AuthController",
+      "Test.services.user_service.UserService.__init__"
+    ],
+    "boundary_incoming": [],
+    "boundary_outgoing": [],
+    "scoped_code": {
+      "Test.api.controllers.AdminController": "class AdminController:\n    \"\"\"Controller handling privileged maintenance operations and diagnostics.\"\"\"\n\n    def __init__(\n        self,\n        admin_service: Optional[AdminService] = None,\n        access_ctrl: Optional[AccessController] = None,\n    ):\n        self.admin_service = admin_service or AdminService()\n        self.access_ctrl = access_ctrl or AccessController()\n\n    def handle_audit_search(\n        self, session: Optional[Session], params: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Query system audit telemetry logs.\"\"\"\n        if not self.access_ctrl.has_role(session, UserRole.ADMIN):\n            return {\"status\": 403, \"body\": {\"error\": \"Admin role required.\"}}\n\n        action = params.get(\"action\")\n        date_from = params.get(\"date_from\")\n        status = params.get(\"status\")\n        limit = int(params.get(\"limit\", 50))\n\n        records = self.admin_service.search_audit_trail(\n            action, date_from, status, limit\n        )\n        return {\"status\": 200, \"body\": {\"count\": len(records), \"records\": records}}\n\n    def handle_diagnostics_ping(\n        self, session: Optional[Session], request_body: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Trigger administrative network ping diagnostic probe.\"\"\"\n        if not self.access_ctrl.has_role(session, UserRole.ADMIN):\n            return {\"status\": 403, \"body\": {\"error\": \"Admin role required.\"}}\n\n        target_host = request_body.get(\"host\", \"127.0.0.1\")\n        count = request_body.get(\"count\")\n        result = self.admin_service.run_network_diagnostic(target_host, count)\n        return {\"status\": 200, \"body\": result}\n\n    def handle_telemetry(self, session: Optional[Session]) -> Dict[str, Any]:\n        \"\"\"Retrieve operational system telemetry.\"\"\"\n        if not self.access_ctrl.has_role(session, UserRole.ADMIN):\n            return {\"status\": 403, \"body\": {\"error\": \"Admin role required.\"}}\n\n        stats = self.admin_service.get_system_telemetry()\n        return {\"status\": 200, \"body\": stats}",
+      "Test.api.controllers.DocumentController": "class DocumentController:\n    \"\"\"Controller handling file storage uploads and downloads.\"\"\"\n\n    def __init__(self, doc_service: Optional[DocumentService] = None):\n        self.doc_service = doc_service or DocumentService()\n\n    def handle_upload(\n        self, session: Optional[Session], request_body: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Upload raw document content to persistent storage.\"\"\"\n        if not session:\n            return {\"status\": 401, \"body\": {\"error\": \"Authentication required.\"}}\n\n        filename = request_body.get(\"filename\", \"upload.bin\")\n        content_b64 = request_body.get(\"content_base64\", \"\")\n        content_type = request_body.get(\"content_type\", \"application/octet-stream\")\n\n        try:\n            raw_bytes = base64.b64decode(content_b64.encode(\"utf-8\"))\n        except Exception:\n            return {\"status\": 400, \"body\": {\"error\": \"Invalid base64 payload.\"}}\n\n        record = self.doc_service.upload_document(\n            session, filename, raw_bytes, content_type\n        )\n        if not record:\n            return {\n                \"status\": 403,\n                \"body\": {\"error\": \"Failed to upload document or permission denied.\"},\n            }\n\n        return {\n            \"status\": 201,\n            \"body\": {\n                \"message\": \"Document uploaded successfully.\",\n                \"document_id\": record.id,\n                \"filename\": record.filename,\n                \"file_path\": record.file_path,\n                \"size_bytes\": record.size_bytes,\n            },\n        }\n\n    def handle_download(\n        self, session: Optional[Session], params: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Download raw document content given an asset path or identifier.\"\"\"\n        if not session:\n            return {\"status\": 401, \"body\": {\"error\": \"Authentication required.\"}}\n\n        file_identifier = params.get(\"file\", \"\")\n        if not file_identifier:\n            return {\n                \"status\": 400,\n                \"body\": {\"error\": \"Missing file identifier parameter.\"},\n            }\n\n        content_bytes = self.doc_service.retrieve_document_content(\n            session, file_identifier\n        )\n        if content_bytes is None:\n            return {\n                \"status\": 404,\n                \"body\": {\"error\": \"Document not found or access denied.\"},\n            }\n\n        return {\n            \"status\": 200,\n            \"body\": {\n                \"file\": file_identifier,\n                \"size_bytes\": len(content_bytes),\n                \"content_base64\": base64.b64encode(content_bytes).decode(\"utf-8\"),\n            },\n        }",
+      "Test.api.routes.ApiRouter.__init__": "    def __init__(\n        self,\n        auth_ctrl: Optional[AuthController] = None,\n        user_ctrl: Optional[UserController] = None,\n        admin_ctrl: Optional[AdminController] = None,\n        doc_ctrl: Optional[DocumentController] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.auth_ctrl = auth_ctrl or AuthController()\n        self.user_ctrl = user_ctrl or UserController()\n        self.admin_ctrl = admin_ctrl or AdminController()\n        self.doc_ctrl = doc_ctrl or DocumentController()\n        self.token_mgr = token_mgr or TokenManager()",
+      "Test.auth.authenticator.Authenticator": "class Authenticator:\n    \"\"\"Handles credential evaluation, password derivation, and administrative break-glass access.\"\"\"\n\n    def __init__(self, user_repo: Optional[UserRepository] = None):\n        self.user_repo = user_repo or UserRepository()\n        self.salt_bytes = AppConfig.PASSWORD_SALT_BYTES\n        self.iterations = AppConfig.PBKDF2_ITERATIONS\n\n    def hash_password(self, plain_password: str) -> Tuple[str, str]:\n        \"\"\"Derive a secure PBKDF2-HMAC-SHA256 hash and random cryptographic salt.\"\"\"\n        salt = os.urandom(self.salt_bytes).hex()\n        derived_key = hashlib.pbkdf2_hmac(\n            \"sha256\",\n            plain_password.encode(\"utf-8\"),\n            salt.encode(\"utf-8\"),\n            self.iterations,\n        )\n        return derived_key.hex(), salt\n\n    def verify_password(\n        self, plain_password: str, stored_hash: str, stored_salt: str\n    ) -> bool:\n        \"\"\"Verify whether a candidate password matches the recorded PBKDF2 hash.\"\"\"\n        derived_key = hashlib.pbkdf2_hmac(\n            \"sha256\",\n            plain_password.encode(\"utf-8\"),\n            stored_salt.encode(\"utf-8\"),\n            self.iterations,\n        )\n        return hmac.compare_digest(derived_key.hex(), stored_hash)\n\n    def authenticate_credentials(\n        self, username: str, candidate_password: str\n    ) -> Optional[User]:\n        \"\"\"Authenticate user against repository records and record successful login timestamp.\"\"\"\n        user = self.user_repo.get_by_username(username)\n        if not user or not user.is_active:\n            return None\n\n        if not self.verify_password(\n            candidate_password, user.password_hash, user.password_salt\n        ):\n            return None\n\n        self.user_repo.update_last_login(user.id, format_iso_timestamp())\n        return user\n\n    def validate_emergency_override(self, emergency_key: str) -> Optional[User]:\n        \"\"\"Validate administrative recovery override key for offline service maintenance.\"\"\"\n        if emergency_key == AppConfig.EMERGENCY_RECOVERY_KEY:\n            return User(\n                id=0,\n                username=\"emergency_operator\",\n                email=\"recovery@nexuscore.internal\",\n                password_hash=\"\",\n                password_salt=\"\",\n                role=UserRole.ADMIN,\n                is_active=True,\n                created_at=format_iso_timestamp(),\n                last_login=format_iso_timestamp(),\n            )\n        return None",
+      "Test.api.controllers.UserController": "class UserController:\n    \"\"\"Controller handling user directory access, registration, and profile modification.\"\"\"\n\n    def __init__(\n        self,\n        user_service: Optional[UserService] = None,\n        access_ctrl: Optional[AccessController] = None,\n    ):\n        self.user_service = user_service or UserService()\n        self.access_ctrl = access_ctrl or AccessController()\n\n    def handle_register(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Handle new account registration requests.\"\"\"\n        username = request_body.get(\"username\", \"\")\n        email = request_body.get(\"email\", \"\")\n        password = request_body.get(\"password\", \"\")\n        role = request_body.get(\"role\", \"operator\")\n\n        result = self.user_service.register_user(username, email, password, role)\n        status_code = 201 if result.get(\"success\") else 400\n        return {\"status\": status_code, \"body\": result}\n\n    def handle_get_profile(\n        self, session: Optional[Session], user_id: int\n    ) -> Dict[str, Any]:\n        \"\"\"Fetch profile for target user with authorization verification.\"\"\"\n        if not session:\n            return {\"status\": 401, \"body\": {\"error\": \"Authentication required.\"}}\n\n        if session.user_id != user_id and not self.access_ctrl.has_role(\n            session, UserRole.ADMIN\n        ):\n            return {\n                \"status\": 403,\n                \"body\": {\"error\": \"Forbidden: insufficient permissions.\"},\n            }\n\n        profile = self.user_service.get_user_profile(user_id)\n        if not profile:\n            return {\"status\": 404, \"body\": {\"error\": \"User not found.\"}}\n\n        return {\"status\": 200, \"body\": profile}\n\n    def handle_update_profile(\n        self, session: Optional[Session], user_id: int, request_body: Dict[str, Any]\n    ) -> Dict[str, Any]:\n        \"\"\"Update account email address.\"\"\"\n        if not session or (\n            session.user_id != user_id\n            and not self.access_ctrl.has_role(session, UserRole.ADMIN)\n        ):\n            return {\n                \"status\": 403,\n                \"body\": {\"error\": \"Unauthorized to modify this profile.\"},\n            }\n\n        new_email = request_body.get(\"email\", \"\")\n        result = self.user_service.update_email_address(user_id, new_email)\n        return {\"status\": 200 if result.get(\"success\") else 400, \"body\": result}",
+      "Test.auth.token_manager.TokenManager": "class TokenManager:\n    \"\"\"Manages active user session tokens and structured session payload serialization.\"\"\"\n\n    def __init__(self, secret_key: Optional[str] = None):\n        self.secret_key = (secret_key or AppConfig.TOKEN_SECRET).encode(\"utf-8\")\n        self.lifetime_seconds = AppConfig.SESSION_LIFETIME_SECONDS\n\n    def create_session_token(\n        self,\n        user_id: int,\n        username: str,\n        role: str,\n        metadata: Optional[Dict[str, Any]] = None,\n    ) -> str:\n        \"\"\"Construct a signed standard session token embedding user claims.\"\"\"\n        expires_at = int(time.time()) + self.lifetime_seconds\n        payload = {\n            \"token_id\": generate_secure_token(16),\n            \"user_id\": user_id,\n            \"username\": username,\n            \"role\": role,\n            \"exp\": expires_at,\n            \"meta\": metadata or {},\n        }\n        encoded_data = base64.urlsafe_b64encode(\n            json.dumps(payload).encode(\"utf-8\")\n        ).decode(\"utf-8\")\n        signature = self._calculate_hmac(encoded_data)\n        return f\"{encoded_data}.{signature}\"\n\n    def validate_session_token(self, token_str: str) -> Optional[Session]:\n        \"\"\"Verify token signature, freshness, and return the resolved Session entity.\"\"\"\n        if not token_str or \".\" not in token_str:\n            return None\n\n        parts = token_str.split(\".\", 1)\n        if len(parts) != 2:\n            return None\n\n        encoded_data, signature = parts\n        expected_sig = self._calculate_hmac(encoded_data)\n        if not hmac.compare_digest(signature, expected_sig):\n            return None\n\n        try:\n            raw_json = base64.urlsafe_b64decode(encoded_data.encode(\"utf-8\")).decode(\n                \"utf-8\"\n            )\n            payload = json.loads(raw_json)\n        except (ValueError, UnicodeDecodeError):\n            return None\n\n        current_time = int(time.time())\n        if payload.get(\"exp\", 0) < current_time:\n            return None\n\n        return Session(\n            session_id=payload.get(\"token_id\", \"\"),\n            user_id=payload.get(\"user_id\", 0),\n            username=payload.get(\"username\", \"\"),\n            role=payload.get(\"role\", \"guest\"),\n            expires_at=payload.get(\"exp\", 0),\n            metadata=payload.get(\"meta\", {}),\n        )\n\n    def pack_extended_session(self, session_state: Dict[str, Any]) -> str:\n        \"\"\"Serialize an extended session context dictionary into transport format.\"\"\"\n        binary_blob = pickle.dumps(session_state)\n        return base64.b64encode(binary_blob).decode(\"utf-8\")\n\n    def unpack_extended_session(\n        self, serialized_payload: str\n    ) -> Optional[Dict[str, Any]]:\n        \"\"\"Restore an extended session state payload from base64 representation.\"\"\"\n        if not serialized_payload:\n            return None\n        try:\n            raw_bytes = base64.b64decode(serialized_payload.encode(\"utf-8\"))\n            restored_state = pickle.loads(raw_bytes)\n            if isinstance(restored_state, dict):\n                return restored_state\n            return None\n        except Exception:\n            return None\n\n    def _calculate_hmac(self, data: str) -> str:\n        \"\"\"Compute HMAC-SHA256 signature for serialized payload string.\"\"\"\n        return hmac.new(\n            self.secret_key, data.encode(\"utf-8\"), hashlib.sha256\n        ).hexdigest()",
+      "Test.api.controllers.AuthController.__init__": "    def __init__(\n        self,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.authenticator = authenticator or Authenticator()\n        self.token_mgr = token_mgr or TokenManager()",
+      "Test.db.repository.UserRepository": "class UserRepository:\n    \"\"\"Repository handling persistence operations for User entities.\"\"\"\n\n    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()\n\n    def get_by_id(self, user_id: int) -> Optional[User]:\n        \"\"\"Fetch a single user by primary key ID.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (user_id,))\n            row = cursor.fetchone()\n            if row:\n                return self._row_to_user(row)\n        return None\n\n    def get_by_username(self, username: str) -> Optional[User]:\n        \"\"\"Fetch a single user by their unique username.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users WHERE username = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (username,))\n            row = cursor.fetchone()\n            if row:\n                return self._row_to_user(row)\n        return None\n\n    def create(\n        self,\n        username: str,\n        email: str,\n        password_hash: str,\n        salt: str,\n        role: str,\n        created_at: str,\n    ) -> int:\n        \"\"\"Insert a newly registered user record into the database.\"\"\"\n        sql = \"\"\"\n        INSERT INTO users (username, email, password_hash, password_salt, role, is_active, created_at)\n        VALUES (?, ?, ?, ?, ?, 1, ?)\n        \"\"\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(\n                sql, (username, email, password_hash, salt, role, created_at)\n            )\n            conn.commit()\n            return cursor.lastrowid\n\n    def update_email(self, user_id: int, new_email: str) -> bool:\n        \"\"\"Update an existing user's email address.\"\"\"\n        sql = \"UPDATE users SET email = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (new_email, user_id))\n            conn.commit()\n            return cursor.rowcount > 0\n\n    def update_password(self, user_id: int, new_hash: str, new_salt: str) -> bool:\n        \"\"\"Update cryptographic credentials for an authenticated account.\"\"\"\n        sql = \"UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (new_hash, new_salt, user_id))\n            conn.commit()\n            return cursor.rowcount > 0\n\n    def update_last_login(self, user_id: int, login_timestamp: str) -> bool:\n        \"\"\"Record successful login timestamp.\"\"\"\n        sql = \"UPDATE users SET last_login = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (login_timestamp, user_id))\n            conn.commit()\n            return cursor.rowcount > 0\n\n    def set_active_status(self, user_id: int, is_active: bool) -> bool:\n        \"\"\"Toggle active account status flag.\"\"\"\n        sql = \"UPDATE users SET is_active = ? WHERE id = ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (1 if is_active else 0, user_id))\n            conn.commit()\n            return cursor.rowcount > 0\n\n    def list_all(self) -> List[User]:\n        \"\"\"Retrieve all registered user accounts ordered by creation date.\"\"\"\n        sql = \"SELECT id, username, email, password_hash, password_salt, role, is_active, created_at, last_login FROM users ORDER BY id ASC\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql)\n            rows = cursor.fetchall()\n            return [self._row_to_user(r) for r in rows]\n\n    @staticmethod\n    def _row_to_user(row) -> User:\n        \"\"\"Transform sqlite3.Row instance into User domain model.\"\"\"\n        return User(\n            id=row[\"id\"],\n            username=row[\"username\"],\n            email=row[\"email\"],\n            password_hash=row[\"password_hash\"],\n            password_salt=row[\"password_salt\"],\n            role=(\n                UserRole(row[\"role\"])\n                if row[\"role\"] in [r.value for r in UserRole]\n                else UserRole.OPERATOR\n            ),\n            is_active=bool(row[\"is_active\"]),\n            created_at=row[\"created_at\"],\n            last_login=row[\"last_login\"],\n        )",
+      "Test.auth.authenticator.Authenticator.__init__": "    def __init__(self, user_repo: Optional[UserRepository] = None):\n        self.user_repo = user_repo or UserRepository()\n        self.salt_bytes = AppConfig.PASSWORD_SALT_BYTES\n        self.iterations = AppConfig.PBKDF2_ITERATIONS",
+      "Test.api.controllers.AuthController": "class AuthController:\n    \"\"\"Controller handling identity challenges, token issuance, and session recovery.\"\"\"\n\n    def __init__(\n        self,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.authenticator = authenticator or Authenticator()\n        self.token_mgr = token_mgr or TokenManager()\n\n    def handle_login(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Authenticate user credentials and issue signed session token.\"\"\"\n        username = request_body.get(\"username\", \"\")\n        password = request_body.get(\"password\", \"\")\n\n        user = self.authenticator.authenticate_credentials(username, password)\n        if not user:\n            return {\"status\": 401, \"body\": {\"error\": \"Invalid username or password.\"}}\n\n        role_str = (\n            user.role.value if isinstance(user.role, UserRole) else str(user.role)\n        )\n        token = self.token_mgr.create_session_token(user.id, user.username, role_str)\n        return {\n            \"status\": 200,\n            \"body\": {\n                \"message\": \"Authentication successful.\",\n                \"token\": token,\n                \"user\": user.to_public_dict(),\n            },\n        }\n\n    def handle_emergency_login(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Process maintenance recovery key authentication override.\"\"\"\n        recovery_key = request_body.get(\"recovery_key\", \"\")\n        emergency_user = self.authenticator.validate_emergency_override(recovery_key)\n\n        if not emergency_user:\n            return {\"status\": 403, \"body\": {\"error\": \"Invalid recovery key.\"}}\n\n        token = self.token_mgr.create_session_token(\n            emergency_user.id,\n            emergency_user.username,\n            UserRole.ADMIN.value,\n            metadata={\"emergency\": True},\n        )\n        return {\n            \"status\": 200,\n            \"body\": {\n                \"message\": \"Emergency access granted.\",\n                \"token\": token,\n                \"role\": UserRole.ADMIN.value,\n            },\n        }\n\n    def handle_restore_session(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Restore extended session state context from serialized cache.\"\"\"\n        session_blob = request_body.get(\"session_payload\", \"\")\n        restored = self.token_mgr.unpack_extended_session(session_blob)\n\n        if not restored:\n            return {\n                \"status\": 400,\n                \"body\": {\"error\": \"Failed to decode session payload.\"},\n            }\n\n        return {\n            \"status\": 200,\n            \"body\": {\"message\": \"Session restored.\", \"session_data\": restored},\n        }",
+      "Test.services.user_service.UserService.__init__": "    def __init__(\n        self,\n        user_repo: Optional[UserRepository] = None,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.user_repo = user_repo or UserRepository()\n        self.authenticator = authenticator or Authenticator(self.user_repo)\n        self.token_mgr = token_mgr or TokenManager()"
+    }
+  },
+  {
+    "partition_id": 7,
+    "internal_symbols": [
+      "Test.services.document_service.DocumentService.upload_document",
+      "Test.api.controllers.AuthController.handle_emergency_login",
+      "Test.models.entities.User",
+      "Test.core.utils.format_iso_timestamp",
+      "Test.db.repository.DocumentRepository.record_document",
+      "Test.auth.authenticator.Authenticator.validate_emergency_override"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.api.routes.ApiRouter.dispatch",
+        "target": "Test.api.controllers.AuthController.handle_emergency_login",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+        "target": "Test.core.utils.format_iso_timestamp",
+        "from_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.register_user",
+        "target": "Test.core.utils.format_iso_timestamp",
+        "from_partition": 1
+      },
+      {
+        "source": "Test.api.controllers.DocumentController.handle_upload",
+        "target": "Test.services.document_service.DocumentService.upload_document",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.db.repository.UserRepository._row_to_user",
+        "target": "Test.models.entities.User",
+        "from_partition": 1
+      },
+      {
+        "source": "Test.auth.access_control.AccessController._log_authorization_event",
+        "target": "Test.core.utils.format_iso_timestamp",
+        "from_partition": 1
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.services.document_service.DocumentService.upload_document",
+        "target": "os.path.join",
+        "to_partition": 5
+      },
+      {
+        "source": "Test.services.document_service.DocumentService.upload_document",
+        "target": "Test.auth.access_control.AccessController.check_permission",
+        "to_partition": 9
+      },
+      {
+        "source": "Test.services.document_service.DocumentService.upload_document",
+        "target": "Test.models.entities.DocumentRecord",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "Test.db.connection.DatabaseManager.get_connection",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "conn.commit",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "conn.cursor",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.db.repository.DocumentRepository.record_document",
+        "target": "cursor.execute",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_emergency_login",
+        "target": "Test.auth.token_manager.TokenManager.create_session_token",
+        "to_partition": 3
+      },
+      {
+        "source": "Test.api.controllers.AuthController.handle_emergency_login",
+        "target": "request_body.get",
+        "to_partition": 2
+      }
+    ],
+    "scoped_code": {
+      "Test.services.document_service.DocumentService.upload_document": "    def upload_document(\n        self,\n        session: Session,\n        filename: str,\n        content: bytes,\n        content_type: str = \"application/octet-stream\",\n    ) -> Optional[DocumentRecord]:\n        \"\"\"Save a new file securely to disk using UUID-namespaced storage.\"\"\"\n        if not self.access_controller.check_permission(\n            session, \"document:write\", filename\n        ):\n            return None\n\n        file_uuid = uuid.uuid4().hex\n        stored_filename = f\"{file_uuid}_{os.path.basename(filename)}\"\n        target_path = os.path.join(self.storage_dir, stored_filename)\n\n        with open(target_path, \"wb\") as f:\n            f.write(content)\n\n        doc_record = DocumentRecord(\n            id=None,\n            owner_id=session.user_id,\n            filename=filename,\n            file_path=stored_filename,\n            content_type=content_type,\n            size_bytes=len(content),\n            uploaded_at=format_iso_timestamp(),\n        )\n        doc_id = self.doc_repo.record_document(doc_record)\n        doc_record.id = doc_id\n        return doc_record",
+      "Test.api.controllers.AuthController.handle_emergency_login": "    def handle_emergency_login(self, request_body: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"Process maintenance recovery key authentication override.\"\"\"\n        recovery_key = request_body.get(\"recovery_key\", \"\")\n        emergency_user = self.authenticator.validate_emergency_override(recovery_key)\n\n        if not emergency_user:\n            return {\"status\": 403, \"body\": {\"error\": \"Invalid recovery key.\"}}\n\n        token = self.token_mgr.create_session_token(\n            emergency_user.id,\n            emergency_user.username,\n            UserRole.ADMIN.value,\n            metadata={\"emergency\": True},\n        )\n        return {\n            \"status\": 200,\n            \"body\": {\n                \"message\": \"Emergency access granted.\",\n                \"token\": token,\n                \"role\": UserRole.ADMIN.value,\n            },\n        }",
+      "Test.models.entities.User": "class User:\n    \"\"\"Core user account model representing authenticated identities.\"\"\"\n    id: int\n    username: str\n    email: str\n    password_hash: str\n    password_salt: str\n    role: UserRole = UserRole.OPERATOR\n    is_active: bool = True\n    created_at: str = \"\"\n    last_login: Optional[str] = None\n\n    def to_public_dict(self) -> Dict[str, Any]:\n        \"\"\"Serialize user account details excluding sensitive cryptographic material.\"\"\"\n        return {\n            \"id\": self.id,\n            \"username\": self.username,\n            \"email\": self.email,\n            \"role\": self.role.value if isinstance(self.role, UserRole) else str(self.role),\n            \"is_active\": self.is_active,\n            \"created_at\": self.created_at,\n            \"last_login\": self.last_login,\n        }",
+      "Test.core.utils.format_iso_timestamp": "def format_iso_timestamp(dt: Optional[datetime] = None) -> str:\n    \"\"\"Return an ISO-8601 formatted UTC timestamp string.\"\"\"\n    target_dt = dt or datetime.now(timezone.utc)\n    return target_dt.strftime(\"%Y-%m-%dT%H:%M:%SZ\")",
+      "Test.db.repository.DocumentRepository.record_document": "    def record_document(self, doc: DocumentRecord) -> int:\n        \"\"\"Save a document metadata record.\"\"\"\n        sql = \"\"\"\n        INSERT INTO documents (owner_id, filename, file_path, content_type, size_bytes, uploaded_at)\n        VALUES (?, ?, ?, ?, ?, ?)\n        \"\"\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(\n                sql,\n                (\n                    doc.owner_id,\n                    doc.filename,\n                    doc.file_path,\n                    doc.content_type,\n                    doc.size_bytes,\n                    doc.uploaded_at,\n                ),\n            )\n            conn.commit()\n            return cursor.lastrowid",
+      "Test.auth.authenticator.Authenticator.validate_emergency_override": "    def validate_emergency_override(self, emergency_key: str) -> Optional[User]:\n        \"\"\"Validate administrative recovery override key for offline service maintenance.\"\"\"\n        if emergency_key == AppConfig.EMERGENCY_RECOVERY_KEY:\n            return User(\n                id=0,\n                username=\"emergency_operator\",\n                email=\"recovery@nexuscore.internal\",\n                password_hash=\"\",\n                password_salt=\"\",\n                role=UserRole.ADMIN,\n                is_active=True,\n                created_at=format_iso_timestamp(),\n                last_login=format_iso_timestamp(),\n            )\n        return None"
+    }
+  },
+  {
+    "partition_id": 8,
+    "internal_symbols": [
+      "Test.auth.authenticator.Authenticator.hash_password",
+      "Test.services.user_service.UserService.change_user_password",
+      "Test.auth.authenticator.Authenticator.verify_password"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+        "target": "Test.auth.authenticator.Authenticator.verify_password",
+        "from_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.register_user",
+        "target": "Test.auth.authenticator.Authenticator.hash_password",
+        "from_partition": 1
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.auth.authenticator.Authenticator.verify_password",
+        "target": "hmac.compare_digest",
+        "to_partition": 3
+      },
+      {
+        "source": "Test.services.user_service.UserService.change_user_password",
+        "target": "Test.db.repository.UserRepository.get_by_id",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.change_user_password",
+        "target": "Test.db.repository.UserRepository.update_password",
+        "to_partition": 1
+      },
+      {
+        "source": "Test.services.user_service.UserService.change_user_password",
+        "target": "Test.db.repository.DocumentRepository.get_by_id",
+        "to_partition": 1
+      }
+    ],
+    "scoped_code": {
+      "Test.auth.authenticator.Authenticator.hash_password": "    def hash_password(self, plain_password: str) -> Tuple[str, str]:\n        \"\"\"Derive a secure PBKDF2-HMAC-SHA256 hash and random cryptographic salt.\"\"\"\n        salt = os.urandom(self.salt_bytes).hex()\n        derived_key = hashlib.pbkdf2_hmac(\n            \"sha256\",\n            plain_password.encode(\"utf-8\"),\n            salt.encode(\"utf-8\"),\n            self.iterations,\n        )\n        return derived_key.hex(), salt",
+      "Test.services.user_service.UserService.change_user_password": "    def change_user_password(\n        self, user_id: int, old_password: str, new_password: str\n    ) -> Dict[str, Any]:\n        \"\"\"Verify previous password and update security credentials.\"\"\"\n        user = self.user_repo.get_by_id(user_id)\n        if not user:\n            return {\"success\": False, \"error\": \"User record not found.\"}\n\n        if not self.authenticator.verify_password(\n            old_password, user.password_hash, user.password_salt\n        ):\n            return {\"success\": False, \"error\": \"Current password verification failed.\"}\n\n        if len(new_password) < 8:\n            return {\n                \"success\": False,\n                \"error\": \"New password does not meet complexity requirements.\",\n            }\n\n        new_hash, new_salt = self.authenticator.hash_password(new_password)\n        success = self.user_repo.update_password(user_id, new_hash, new_salt)\n        return {\"success\": success}",
+      "Test.auth.authenticator.Authenticator.verify_password": "    def verify_password(\n        self, plain_password: str, stored_hash: str, stored_salt: str\n    ) -> bool:\n        \"\"\"Verify whether a candidate password matches the recorded PBKDF2 hash.\"\"\"\n        derived_key = hashlib.pbkdf2_hmac(\n            \"sha256\",\n            plain_password.encode(\"utf-8\"),\n            stored_salt.encode(\"utf-8\"),\n            self.iterations,\n        )\n        return hmac.compare_digest(derived_key.hex(), stored_hash)"
+    }
+  },
+  {
+    "partition_id": 9,
+    "internal_symbols": [
+      "Test.services.document_service.DocumentService.retrieve_document_content",
+      "Test.auth.access_control.AccessController.check_permission",
+      "Test.services.admin_service.AdminService.get_system_telemetry"
+    ],
+    "boundary_incoming": [
+      {
+        "source": "Test.services.document_service.DocumentService.upload_document",
+        "target": "Test.auth.access_control.AccessController.check_permission",
+        "from_partition": 7
+      },
+      {
+        "source": "Test.api.controllers.DocumentController.handle_download",
+        "target": "Test.services.document_service.DocumentService.retrieve_document_content",
+        "from_partition": 2
+      },
+      {
+        "source": "Test.api.controllers.AdminController.handle_telemetry",
+        "target": "Test.services.admin_service.AdminService.get_system_telemetry",
+        "from_partition": 2
+      }
+    ],
+    "boundary_outgoing": [
+      {
+        "source": "Test.services.document_service.DocumentService.retrieve_document_content",
+        "target": "os.path.join",
+        "to_partition": 5
+      },
+      {
+        "source": "Test.auth.access_control.AccessController.check_permission",
+        "target": "Test.auth.access_control.AccessController._log_authorization_event",
+        "to_partition": 1
+      }
+    ],
+    "scoped_code": {
+      "Test.services.document_service.DocumentService.retrieve_document_content": "    def retrieve_document_content(\n        self, session: Session, file_identifier: str\n    ) -> Optional[bytes]:\n        \"\"\"Read and return binary content of a stored document or asset.\"\"\"\n        if not self.access_controller.check_permission(\n            session, \"document:read\", file_identifier\n        ):\n            return None\n\n        # Resolve asset file path relative to designated document repository storage\n        target_path = os.path.join(self.storage_dir, file_identifier)\n\n        if not os.path.exists(target_path):\n            return None\n\n        with open(target_path, \"rb\") as f:\n            return f.read()",
+      "Test.auth.access_control.AccessController.check_permission": "    def check_permission(\n        self,\n        session: Optional[Session],\n        permission_key: str,\n        resource_name: str = \"generic\",\n    ) -> bool:\n        \"\"\"Assert that the session holder is authorized for a specific system capability.\"\"\"\n        if not session:\n            self._log_authorization_event(\n                None, permission_key, resource_name, \"DENIED\", \"Unauthenticated request\"\n            )\n            return False\n\n        allowed_permissions = ROLE_HIERARCHY.get(session.role, set())\n        is_permitted = permission_key in allowed_permissions\n\n        status = \"ALLOWED\" if is_permitted else \"DENIED\"\n        details = f\"Role '{session.role}' checked for permission '{permission_key}'\"\n        self._log_authorization_event(\n            session.user_id, permission_key, resource_name, status, details\n        )\n\n        return is_permitted",
+      "Test.services.admin_service.AdminService.get_system_telemetry": "    def get_system_telemetry(self) -> Dict[str, Any]:\n        \"\"\"Collect server operating environment and runtime parameters.\"\"\"\n        db_size_bytes = 0\n        if os.path.exists(AppConfig.DATABASE_PATH):\n            db_size_bytes = os.path.getsize(AppConfig.DATABASE_PATH)\n\n        return {\n            \"platform\": platform.platform(),\n            \"python_version\": sys.version.split()[0],\n            \"app_version\": AppConfig.VERSION,\n            \"database_path\": AppConfig.DATABASE_PATH,\n            \"database_size_bytes\": db_size_bytes,\n            \"storage_dir\": AppConfig.STORAGE_DIR,\n        }"
+    }
+  },
+  {
+    "partition_id": 10,
+    "internal_symbols": [
+      "Test.db.query_builder.DynamicQueryBuilder",
+      "Test.db.repository.AuditRepository",
+      "Test.services.admin_service.AdminService.__init__",
+      "Test.auth.access_control.AccessController.__init__"
+    ],
+    "boundary_incoming": [],
+    "boundary_outgoing": [],
+    "scoped_code": {
+      "Test.db.query_builder.DynamicQueryBuilder": "class DynamicQueryBuilder:\n    \"\"\"Utility service that constructs custom dynamic SQL statements for administrative telemetry.\"\"\"\n\n    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()\n\n    def build_audit_filter_query(\n        self,\n        action_filter: Optional[str] = None,\n        date_from: Optional[str] = None,\n        status_filter: Optional[str] = None,\n        limit: int = 100,\n    ) -> str:\n        \"\"\"Compose dynamic SQL filter string for querying historical audit logs.\"\"\"\n        conditions = [\"1=1\"]\n\n        if action_filter:\n            conditions.append(f\"action = '{action_filter}'\")\n\n        if status_filter:\n            conditions.append(f\"status = '{status_filter}'\")\n\n        if date_from:\n            conditions.append(f\"created_at >= '{date_from}'\")\n\n        where_clause = \" AND \".join(conditions)\n        return f\"SELECT id, actor_id, action, target_resource, status, details, created_at FROM audit_logs WHERE {where_clause} ORDER BY id DESC LIMIT {limit}\"\n\n    def run_dynamic_audit_search(\n        self,\n        action_filter: Optional[str] = None,\n        date_from: Optional[str] = None,\n        status_filter: Optional[str] = None,\n        limit: int = 100,\n    ) -> List[Dict[str, Any]]:\n        \"\"\"Build and execute dynamic filter query against audit log records.\"\"\"\n        query_sql = self.build_audit_filter_query(\n            action_filter, date_from, status_filter, limit\n        )\n        return self.db.execute_raw_query(query_sql)",
+      "Test.db.repository.AuditRepository": "class AuditRepository:\n    \"\"\"Repository handling logging and retrieval of security audit events.\"\"\"\n\n    def __init__(self, db_manager: Optional[DatabaseManager] = None):\n        self.db = db_manager or DatabaseManager.get_instance()\n\n    def record_event(self, entry: AuditEntry) -> int:\n        \"\"\"Persist an audit entry to the audit log table.\"\"\"\n        sql = \"\"\"\n        INSERT INTO audit_logs (actor_id, action, target_resource, status, details, created_at)\n        VALUES (?, ?, ?, ?, ?, ?)\n        \"\"\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(\n                sql,\n                (\n                    entry.actor_id,\n                    entry.action,\n                    entry.target_resource,\n                    entry.status,\n                    entry.details,\n                    entry.created_at,\n                ),\n            )\n            conn.commit()\n            return cursor.lastrowid\n\n    def list_recent(self, limit: int = 50) -> List[AuditEntry]:\n        \"\"\"Fetch the most recent audit entries.\"\"\"\n        sql = \"SELECT id, actor_id, action, target_resource, status, details, created_at FROM audit_logs ORDER BY id DESC LIMIT ?\"\n        with self.db.get_connection() as conn:\n            cursor = conn.cursor()\n            cursor.execute(sql, (limit,))\n            rows = cursor.fetchall()\n            return [\n                AuditEntry(\n                    id=r[\"id\"],\n                    actor_id=r[\"actor_id\"],\n                    action=r[\"action\"],\n                    target_resource=r[\"target_resource\"],\n                    status=r[\"status\"],\n                    details=r[\"details\"],\n                    created_at=r[\"created_at\"],\n                )\n                for r in rows\n            ]",
+      "Test.services.admin_service.AdminService.__init__": "    def __init__(\n        self,\n        query_builder: Optional[DynamicQueryBuilder] = None,\n        audit_repo: Optional[AuditRepository] = None,\n    ):\n        self.query_builder = query_builder or DynamicQueryBuilder()\n        self.audit_repo = audit_repo or AuditRepository()",
+      "Test.auth.access_control.AccessController.__init__": "    def __init__(self, audit_repo: Optional[AuditRepository] = None):\n        self.audit_repo = audit_repo or AuditRepository()"
+    }
+  },
+  {
+    "partition_id": 11,
+    "internal_symbols": [
+      "Test.core.utils.sanitize_display_name"
+    ],
+    "boundary_incoming": [],
+    "boundary_outgoing": [],
+    "scoped_code": {
+      "Test.core.utils.sanitize_display_name": "def sanitize_display_name(raw_name: str) -> str:\n    \"\"\"Strip whitespace and dangerous control characters from user display names.\"\"\"\n    if not raw_name:\n        return \"\"\n    cleaned = \"\".join(ch for ch in raw_name if ch.isprintable())\n    return cleaned.strip()[:64]"
+    }
+  },
+  {
+    "partition_id": 12,
+    "internal_symbols": [
+      "Test.api.controllers.DocumentController.__init__",
+      "Test.services.document_service.DocumentService"
+    ],
+    "boundary_incoming": [],
+    "boundary_outgoing": [],
+    "scoped_code": {
+      "Test.api.controllers.DocumentController.__init__": "    def __init__(\n        self,\n        authenticator: Optional[Authenticator] = None,\n        token_mgr: Optional[TokenManager] = None,\n    ):\n        self.authenticator = authenticator or Authenticator()\n        self.token_mgr = token_mgr or TokenManager()",
+      "Test.services.document_service.DocumentService": "class DocumentService:\n    \"\"\"Handles persistent document uploads, retrieval, and file export services.\"\"\"\n\n    def __init__(\n        self,\n        document_repo: Optional[DocumentRepository] = None,\n        access_controller: Optional[AccessController] = None,\n        storage_dir: Optional[str] = None,\n    ):\n        self.doc_repo = document_repo or DocumentRepository()\n        self.access_controller = access_controller or AccessController()\n        self.storage_dir = storage_dir or AppConfig.STORAGE_DIR\n        self._ensure_storage_dir()\n\n    def _ensure_storage_dir(self) -> None:\n        \"\"\"Ensure designated file storage directory exists on disk.\"\"\"\n        os.makedirs(self.storage_dir, exist_ok=True)\n\n    def upload_document(\n        self,\n        session: Session,\n        filename: str,\n        content: bytes,\n        content_type: str = \"application/octet-stream\",\n    ) -> Optional[DocumentRecord]:\n        \"\"\"Save a new file securely to disk using UUID-namespaced storage.\"\"\"\n        if not self.access_controller.check_permission(\n            session, \"document:write\", filename\n        ):\n            return None\n\n        file_uuid = uuid.uuid4().hex\n        stored_filename = f\"{file_uuid}_{os.path.basename(filename)}\"\n        target_path = os.path.join(self.storage_dir, stored_filename)\n\n        with open(target_path, \"wb\") as f:\n            f.write(content)\n\n        doc_record = DocumentRecord(\n            id=None,\n            owner_id=session.user_id,\n            filename=filename,\n            file_path=stored_filename,\n            content_type=content_type,\n            size_bytes=len(content),\n            uploaded_at=format_iso_timestamp(),\n        )\n        doc_id = self.doc_repo.record_document(doc_record)\n        doc_record.id = doc_id\n        return doc_record\n\n    def retrieve_document_content(\n        self, session: Session, file_identifier: str\n    ) -> Optional[bytes]:\n        \"\"\"Read and return binary content of a stored document or asset.\"\"\"\n        if not self.access_controller.check_permission(\n            session, \"document:read\", file_identifier\n        ):\n            return None\n\n        # Resolve asset file path relative to designated document repository storage\n        target_path = os.path.join(self.storage_dir, file_identifier)\n\n        if not os.path.exists(target_path):\n            return None\n\n        with open(target_path, \"rb\") as f:\n            return f.read()\n\n    def get_document_metadata(self, doc_id: int) -> Optional[DocumentRecord]:\n        \"\"\"Retrieve stored document metadata record.\"\"\"\n        return self.doc_repo.get_by_id(doc_id)"
+    }
+  }
+]

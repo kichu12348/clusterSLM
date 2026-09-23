@@ -1,54 +1,104 @@
 import json
+import ast
 from pathlib import Path
 from graph import get_module_name
 
 
+def extract_symbol_snippet(source_code, symbol_name):
+    """
+    Extracts only the specific class or function code block from source code using AST.
+    """
+    try:
+        tree = ast.parse(source_code)
+        target_name = symbol_name.split(".")[-1]
+
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                if node.name == target_name:
+                    lines = source_code.splitlines()
+                    # ast line numbers are 1-indexed
+                    start = node.lineno - 1
+                    end = node.end_lineno
+                    return "\n".join(lines[start:end])
+    except Exception:
+        pass
+    return None
+
+
 def build_partition_context(partition, boundaries, files_data, repo_path):
     """
-    Constructs the optimized context payload for an SLM worker.
+    Constructs an optimized, symbol-level context payload for an SLM worker.
     """
     part_id = partition["partition_id"]
 
-    # 1. Gather all files involved in this partition
-    relevant_files = set()
-    for node in partition["nodes"]:
-        # Extract module name from FQN (e.g., Test.api.controllers.AdminController -> Test.api.controllers)
-        parts = node.split(".")
-        # Guess the module path (failsafe for builtins)
-        if len(parts) > 1 and parts[0] == repo_path.name:
-            module_name = ".".join(parts[:3])  # e.g., Test.api.controllers
-            relevant_files.add(module_name)
+    # 1. Filter out built-ins and external calls; retain repository symbols only
+    internal_symbols = [n for n in partition["nodes"] if n.startswith(repo_path.name)]
 
-    # Fetch actual source code for these files
-    code_snippets = {}
+    # Map module names to raw source code
+    file_sources = {}
     for f in files_data:
         mod_name = get_module_name(f.path, repo_path.parent)
-        if mod_name in relevant_files:
-            try:
-                with open(f.path, "r", encoding="utf-8") as file_obj:
-                    code_snippets[mod_name] = file_obj.read()
-            except Exception as e:
-                code_snippets[mod_name] = f"# Error reading file: {e}"
+        try:
+            file_sources[mod_name] = Path(f.path).read_text(encoding="utf-8")
+        except Exception:
+            continue
 
-    # 2. Identify incoming and outgoing boundaries for this specific partition
-    incoming = []
-    outgoing = []
-    for b in boundaries:
-        if b["target_partition"] == part_id:
-            incoming.append(f"{b['source_node']} -> {b['target_node']}")
-        if b["source_partition"] == part_id:
-            outgoing.append(f"{b['source_node']} -> {b['target_node']}")
+    # 2. Extract ONLY the relevant function/class code snippets
+    scoped_code = {}
+    for sym in internal_symbols:
+        parts = sym.split(".")
+        # Determine the module part (e.g., Test.db.query_builder)
+        for i in range(len(parts), 0, -1):
+            possible_mod = ".".join(parts[:i])
+            if possible_mod in file_sources:
+                snippet = extract_symbol_snippet(file_sources[possible_mod], parts[-1])
+                if snippet:
+                    scoped_code[sym] = snippet
+                break
 
-    # 3. Create the final payload
-    payload = {
+    # 3. Boundaries
+    incoming = [
+        {
+            "source": b["source_node"],
+            "target": b["target_node"],
+            "from_partition": b["source_partition"],
+        }
+        for b in boundaries
+        if b["target_partition"] == part_id
+    ]
+    outgoing = [
+        {
+            "source": b["source_node"],
+            "target": b["target_node"],
+            "to_partition": b["target_partition"],
+        }
+        for b in boundaries
+        if b["source_partition"] == part_id
+    ]
+
+    return {
         "partition_id": part_id,
-        "internal_nodes": partition["nodes"],
+        "internal_symbols": internal_symbols,
         "boundary_incoming": incoming,
         "boundary_outgoing": outgoing,
-        "source_code": code_snippets,
+        "scoped_code": scoped_code,
     }
 
-    return payload
+
+def export_partition_contexts(
+    partitions, boundaries, files, repo_path, output_path="partition_contexts.json"
+):
+    contexts = []
+    for p in partitions:
+        ctx = build_partition_context(p, boundaries, files, repo_path)
+        if ctx["scoped_code"]:  # Only export partitions with actual code definitions
+            contexts.append(ctx)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(contexts, f, indent=2)
+
+    print(f"\n[+] Exported {len(contexts)} focused partition contexts to {output_path}")
+    return contexts
 
 
 def mock_slm_worker(context_payload):

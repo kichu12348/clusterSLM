@@ -1,0 +1,142 @@
+[
+  {
+    "partition_id": 1,
+    "findings": [
+      {
+        "vulnerability": "SQL Injection",
+        "cwe": "CWE-89",
+        "function": "Test.db.repository.UserRepository.update_last_login",
+        "confidence": 1.0,
+        "evidence": "The SQL query uses parameterized queries, which helps prevent SQL injection."
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "cwe": "CWE-89",
+        "function": "Test.db.query_builder.DynamicQueryBuilder.run_dynamic_audit_search",
+        "confidence": 1.0,
+        "evidence": "The `query_sql` is constructed using raw SQL string formatting with potentially untrusted inputs (`action_filter`, `date_from`, `status_filter`)."
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "cwe": "CWE-89",
+        "function": "Test.db.query_builder.DynamicQueryBuilder.build_audit_filter_query",
+        "confidence": 1.0,
+        "evidence": "Raw SQL string formatting with untrusted input from `action_filter`, `status_filter`, and `date_from`."
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "cwe": "CWE-89",
+        "function": "Test.db.connection.DatabaseManager.execute_raw_query",
+        "confidence": 1.0,
+        "evidence": "The SQL query is executed directly without any sanitization or parameterized queries."
+      }
+    ]
+  },
+  {
+    "partition_id": 2,
+    "findings": [
+      {
+        "vulnerability": "Unsafe Deserialization",
+        "cwe": "502",
+        "function": "Test.auth.token_manager.TokenManager.unpack_extended_session",
+        "confidence": 1.0,
+        "evidence": "The function uses pickle.loads on untrusted data (serialized_payload), which can lead to arbitrary code execution."
+      },
+      {
+        "vulnerability": "Command Injection",
+        "cwe": "CWE-78",
+        "function": "Test.services.admin_service.AdminService.run_network_diagnostic",
+        "confidence": 1.0,
+        "evidence": "The `subprocess.run` function uses `shell=True`, which allows for command injection through the `target_host` parameter."
+      }
+    ]
+  },
+  {
+    "partition_id": 4,
+    "findings": [
+      {
+        "vulnerability": "Unsafe Deserialization",
+        "cwe": "CWE-502",
+        "function": "Test.auth.token_manager.TokenManager.pack_extended_session",
+        "confidence": 1.0,
+        "evidence": "The function uses pickle.dumps to serialize the session_state dictionary, which can lead to unsafe deserialization if the serialized data is received from an untrusted source."
+      }
+    ]
+  },
+  {
+    "partition_id": 5,
+    "findings": [
+      {
+        "vulnerability": "Path Traversal",
+        "cwe": "CWE-22",
+        "function": "Test.db.connection.DatabaseManager._ensure_storage_directory",
+        "confidence": 0.8,
+        "evidence": "The `os.path.dirname` function could potentially allow path traversal if `self.db_path` contains malicious input."
+      },
+      {
+        "vulnerability": "Hardcoded Credentials",
+        "cwe": "CWE-798",
+        "function": "Test.core.config.AppConfig",
+        "confidence": 1.0,
+        "evidence": "The 'EMERGENCY_RECOVERY_KEY' is hardcoded as a string literal."
+      },
+      {
+        "vulnerability": "Hardcoded Credentials",
+        "cwe": "CWE-798",
+        "function": "Test.core.config.AppConfig",
+        "confidence": 1.0,
+        "evidence": "The 'TOKEN_SECRET' is hardcoded as a string literal."
+      },
+      {
+        "vulnerability": "Command Injection",
+        "cwe": "CWE-78",
+        "function": "Test.services.admin_service.AdminService",
+        "confidence": 1.0,
+        "evidence": "The `run_network_diagnostic` method constructs a shell command using string formatting with untrusted input (`target_host`). This can lead to command injection."
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "cwe": "CWE-22",
+        "function": "Test.services.document_service.DocumentService._ensure_storage_dir",
+        "confidence": 0.8,
+        "evidence": "The `storage_dir` attribute is used directly in `os.makedirs`, which could allow path traversal if `storage_dir` contains user-controlled input."
+      }
+    ]
+  },
+  {
+    "partition_id": 6,
+    "findings": [
+      {
+        "vulnerability": "Unsafe Deserialization",
+        "cwe": "502",
+        "function": "Test.auth.token_manager.TokenManager",
+        "confidence": 1.0,
+        "evidence": "The `unpack_extended_session` method uses `pickle.loads`, which can execute arbitrary code and lead to unsafe deserialization."
+      }
+    ]
+  },
+  {
+    "partition_id": 9,
+    "findings": [
+      {
+        "vulnerability": "Path Traversal",
+        "cwe": "CWE-22",
+        "function": "Test.services.document_service.DocumentService.retrieve_document_content",
+        "confidence": 0.8,
+        "evidence": "The `file_identifier` parameter is used directly in `os.path.join`, which could allow path traversal if the input is not properly validated."
+      }
+    ]
+  },
+  {
+    "partition_id": 10,
+    "findings": [
+      {
+        "vulnerability": "SQL Injection",
+        "cwe": "CWE-89",
+        "function": "Test.db.query_builder.DynamicQueryBuilder",
+        "confidence": 1.0,
+        "evidence": "Raw SQL string formatting with untrusted input from `action_filter`, `status_filter`, and `date_from`."
+      }
+    ]
+  }
+]
