@@ -26,9 +26,7 @@ def generate_report(reconciled_findings, output_path="clusterslm_report.json"):
     for i, issue in enumerate(reconciled_findings, 1):
         print(f"\n[{i}] {issue['vulnerability']} ({issue['cwe']})")
         print(f"    Confidence : {issue['confidence'] * 100}%")
-        print(
-            f"    Sink Point : {issue['function']} (Partition {issue['partition_id']})"
-        )
+        print(f"    Sink Point : {issue['symbol']} (Partition {issue['partition_id']})")
 
         if issue.get("cross_boundary"):
             print("    Chain Type : Cross-Partition")

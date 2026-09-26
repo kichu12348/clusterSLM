@@ -24,11 +24,11 @@ def reconcile_findings(findings_list, boundaries, partitions):
 
     for issue in all_issues:
         print(
-            f"\nAnalyzing finding: {issue['vulnerability']} in {issue['function']} (Partition {issue['partition_id']})"
+            f"\nAnalyzing finding: {issue['vulnerability']} in {issue['symbol']} (Partition {issue['partition_id']})"
         )
 
         part_id = issue["partition_id"]
-        target_func = issue["function"]
+        target_func = issue["symbol"]
         subgraph = partition_map[part_id]["subgraph"]
 
         incoming_vectors = []
