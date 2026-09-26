@@ -1,33 +1,127 @@
 {
     "project": "ClustersLM",
-    "total_vulnerabilities": 15,
+    "total_vulnerabilities": 60,
     "findings": [
         {
             "vulnerability": "SQL Injection",
             "cwe": "CWE-89",
-            "function": "Test.db.repository.UserRepository.update_last_login",
+            "function": "Test.services.user_service.UserService.update_email_address",
             "confidence": 1.0,
-            "evidence": "The SQL query uses parameterized queries, which helps prevent SQL injection.",
+            "evidence": "The 'new_email' parameter is directly used in a database query without proper sanitization.",
             "partition_id": 1,
             "cross_boundary": true,
             "vectors": [
                 {
-                    "source_node": "Test.api.controllers.AuthController.handle_login",
+                    "source_node": "Test.api.controllers.UserController.handle_update_profile",
                     "source_partition": 2,
-                    "entry_node": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+                    "entry_node": "Test.services.user_service.UserService.update_email_address",
                     "internal_path": [
-                        "Test.auth.authenticator.Authenticator.authenticate_credentials",
-                        "Test.db.repository.UserRepository.update_last_login"
+                        "Test.services.user_service.UserService.update_email_address"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure Password Storage",
+            "cwe": "CWE-798",
+            "function": "Test.services.user_service.UserService.register_user",
+            "confidence": 0.8,
+            "evidence": "The password is hashed but the salt should also be securely generated and stored.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.UserController.handle_register",
+                    "source_partition": 2,
+                    "entry_node": "Test.services.user_service.UserService.register_user",
+                    "internal_path": [
+                        "Test.services.user_service.UserService.register_user"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "No Input Sanitization",
+            "cwe": "CWE-88",
+            "function": "Test.services.user_service.UserService.register_user",
+            "confidence": 0.6,
+            "evidence": "The validation functions do not sanitize the inputs, which could allow for injection attacks.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.UserController.handle_register",
+                    "source_partition": 2,
+                    "entry_node": "Test.services.user_service.UserService.register_user",
+                    "internal_path": [
+                        "Test.services.user_service.UserService.register_user"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Default Role Assignment",
+            "cwe": "CWE-264",
+            "function": "Test.services.user_service.UserService.register_user",
+            "confidence": 0.7,
+            "evidence": "The default role is set to 'operator', which could lead to unintended access control issues.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.UserController.handle_register",
+                    "source_partition": 2,
+                    "entry_node": "Test.services.user_service.UserService.register_user",
+                    "internal_path": [
+                        "Test.services.user_service.UserService.register_user"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "No Rate Limiting",
+            "cwe": "CWE-78",
+            "function": "Test.services.user_service.UserService.register_user",
+            "confidence": 0.5,
+            "evidence": "There is no rate limiting on registration attempts, which could allow attackers to perform brute-force attacks.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.UserController.handle_register",
+                    "source_partition": 2,
+                    "entry_node": "Test.services.user_service.UserService.register_user",
+                    "internal_path": [
+                        "Test.services.user_service.UserService.register_user"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "No Confirmation Email",
+            "cwe": "CWE-327",
+            "function": "Test.services.user_service.UserService.register_user",
+            "confidence": 0.4,
+            "evidence": "The registration process does not include sending a confirmation email, which could allow attackers to create accounts without verification.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.UserController.handle_register",
+                    "source_partition": 2,
+                    "entry_node": "Test.services.user_service.UserService.register_user",
+                    "internal_path": [
+                        "Test.services.user_service.UserService.register_user"
                     ]
                 }
             ]
         },
         {
             "vulnerability": "SQL Injection",
-            "cwe": "CWE-89",
+            "cwe": "89",
             "function": "Test.db.query_builder.DynamicQueryBuilder.run_dynamic_audit_search",
-            "confidence": 1.0,
-            "evidence": "The `query_sql` is constructed using raw SQL string formatting with potentially untrusted inputs (`action_filter`, `date_from`, `status_filter`).",
+            "confidence": 0.9,
+            "evidence": "The method uses user-controlled inputs directly in the SQL query without proper sanitization.",
             "partition_id": 1,
             "cross_boundary": true,
             "vectors": [
@@ -43,11 +137,76 @@
             ]
         },
         {
+            "vulnerability": "Potential Denial of Service",
+            "cwe": "CWE-400",
+            "function": "Test.services.document_service.DocumentService.get_document_metadata",
+            "confidence": 0.8,
+            "evidence": "The doc_id is directly used in a database query without any validation or sanitization.",
+            "partition_id": 1,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Potential Unvalidated Input",
+            "cwe": "CWE-88",
+            "function": "Test.models.entities.DocumentRecord",
+            "confidence": 0.9,
+            "evidence": "Attributes like 'owner_id', 'filename', 'file_path', 'content_type', and 'uploaded_at' are derived from user input or internal logic but lack proper validation or sanitization.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.services.document_service.DocumentService.upload_document",
+                    "source_partition": 7,
+                    "entry_node": "Test.models.entities.DocumentRecord",
+                    "internal_path": [
+                        "Test.models.entities.DocumentRecord"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.change_user_password",
+                    "source_partition": 8,
+                    "entry_node": "Test.db.repository.DocumentRepository.get_by_id",
+                    "internal_path": [
+                        "Test.db.repository.DocumentRepository.get_by_id",
+                        "Test.models.entities.DocumentRecord"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.get_user_profile",
+                    "source_partition": 2,
+                    "entry_node": "Test.db.repository.DocumentRepository.get_by_id",
+                    "internal_path": [
+                        "Test.db.repository.DocumentRepository.get_by_id",
+                        "Test.models.entities.DocumentRecord"
+                    ]
+                }
+            ]
+        },
+        {
             "vulnerability": "SQL Injection",
-            "cwe": "CWE-89",
+            "cwe": "89",
+            "function": "Test.services.admin_service.AdminService.search_audit_trail",
+            "confidence": 0.7,
+            "evidence": "The parameters action_filter, date_from, and status_filter are directly passed to run_dynamic_audit_search without sanitization.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.AdminController.handle_audit_search",
+                    "source_partition": 2,
+                    "entry_node": "Test.services.admin_service.AdminService.search_audit_trail",
+                    "internal_path": [
+                        "Test.services.admin_service.AdminService.search_audit_trail"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "SQL Injection",
+            "cwe": "89",
             "function": "Test.db.query_builder.DynamicQueryBuilder.build_audit_filter_query",
             "confidence": 1.0,
-            "evidence": "Raw SQL string formatting with untrusted input from `action_filter`, `status_filter`, and `date_from`.",
+            "evidence": "Parameters are directly concatenated into the SQL query without proper sanitization.",
             "partition_id": 1,
             "cross_boundary": true,
             "vectors": [
@@ -65,10 +224,10 @@
         },
         {
             "vulnerability": "SQL Injection",
-            "cwe": "CWE-89",
+            "cwe": "89",
             "function": "Test.db.connection.DatabaseManager.execute_raw_query",
             "confidence": 1.0,
-            "evidence": "The SQL query is executed directly without any sanitization or parameterized queries.",
+            "evidence": "The `sql_query` parameter is directly executed without sanitization.",
             "partition_id": 1,
             "cross_boundary": true,
             "vectors": [
@@ -85,11 +244,84 @@
             ]
         },
         {
-            "vulnerability": "Unsafe Deserialization",
-            "cwe": "502",
+            "vulnerability": "Sensitive Data Exposure",
+            "cwe": "CWE-522",
+            "function": "Test.db.repository.UserRepository.get_by_id",
+            "confidence": 0.8,
+            "evidence": "The query retrieves 'password_hash' and 'password_salt', which could expose sensitive information.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.services.user_service.UserService.change_user_password",
+                    "source_partition": 8,
+                    "entry_node": "Test.db.repository.UserRepository.get_by_id",
+                    "internal_path": [
+                        "Test.db.repository.UserRepository.get_by_id"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.get_user_profile",
+                    "source_partition": 2,
+                    "entry_node": "Test.db.repository.UserRepository.get_by_id",
+                    "internal_path": [
+                        "Test.db.repository.UserRepository.get_by_id"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure Direct Object Reference",
+            "cwe": "CWE-918",
+            "function": "Test.db.repository.UserRepository.get_by_id",
+            "confidence": 0.7,
+            "evidence": "The query does not include any checks for role-based access control, which could allow unauthorized access to certain users' information.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.services.user_service.UserService.change_user_password",
+                    "source_partition": 8,
+                    "entry_node": "Test.db.repository.UserRepository.get_by_id",
+                    "internal_path": [
+                        "Test.db.repository.UserRepository.get_by_id"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.get_user_profile",
+                    "source_partition": 2,
+                    "entry_node": "Test.db.repository.UserRepository.get_by_id",
+                    "internal_path": [
+                        "Test.db.repository.UserRepository.get_by_id"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Log Injection",
+            "cwe": "CWE-948",
+            "function": "Test.auth.access_control.AccessController._log_authorization_event",
+            "confidence": 0.8,
+            "evidence": "The 'action', 'target_resource', 'status', and 'details' parameters are directly used in the creation of an AuditEntry object without any sanitization.",
+            "partition_id": 1,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.auth.access_control.AccessController.check_permission",
+                    "source_partition": 9,
+                    "entry_node": "Test.auth.access_control.AccessController._log_authorization_event",
+                    "internal_path": [
+                        "Test.auth.access_control.AccessController._log_authorization_event"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Deserialization of Untrusted Data",
+            "cwe": "CWE-502",
             "function": "Test.auth.token_manager.TokenManager.unpack_extended_session",
             "confidence": 1.0,
-            "evidence": "The function uses pickle.loads on untrusted data (serialized_payload), which can lead to arbitrary code execution.",
+            "evidence": "The function uses pickle.loads() on the untrusted input 'serialized_payload'.",
             "partition_id": 2,
             "cross_boundary": true,
             "vectors": [
@@ -106,11 +338,91 @@
             ]
         },
         {
+            "vulnerability": "Directory Traversal",
+            "cwe": "CWE-22",
+            "function": "Test.api.controllers.DocumentController.handle_download",
+            "confidence": 0.9,
+            "evidence": "The file_identifier is used directly in the document retrieval service without validation.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.DocumentController.handle_download"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure Authentication",
+            "cwe": "CWE-79",
+            "function": "Test.api.controllers.AuthController.handle_login",
+            "confidence": 0.8,
+            "evidence": "The authenticate_credentials method is called with user-controlled username and password.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.AuthController.handle_login"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Command Injection",
+            "cwe": "CWE-78",
+            "function": "Test.api.controllers.AdminController.handle_diagnostics_ping",
+            "confidence": 0.8,
+            "evidence": "The target_host is directly taken from the request_body and passed to run_network_diagnostic.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.AdminController.handle_diagnostics_ping"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "SQL Injection",
+            "cwe": "CWE-89",
+            "function": "Test.api.controllers.AdminController.handle_audit_search",
+            "confidence": 0.7,
+            "evidence": "The parameters 'action', 'date_from', 'status', and 'limit' are directly passed to the 'search_audit_trail' method without proper sanitization.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.AdminController.handle_audit_search"
+                    ]
+                }
+            ]
+        },
+        {
             "vulnerability": "Command Injection",
             "cwe": "CWE-78",
             "function": "Test.services.admin_service.AdminService.run_network_diagnostic",
             "confidence": 1.0,
-            "evidence": "The `subprocess.run` function uses `shell=True`, which allows for command injection through the `target_host` parameter.",
+            "evidence": "The `target_host` parameter is directly included in the shell command without proper sanitization.",
             "partition_id": 2,
             "cross_boundary": true,
             "vectors": [
@@ -127,74 +439,506 @@
             ]
         },
         {
-            "vulnerability": "Unsafe Deserialization",
+            "vulnerability": "Potential Input Validation Issue",
+            "cwe": "CWE-94",
+            "function": "Test.api.controllers.UserController.handle_get_profile",
+            "confidence": 0.8,
+            "evidence": "The user_id parameter is an integer but lacks explicit validation.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.UserController.handle_get_profile"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Role-Based Access Control Enforcement",
+            "cwe": "CWE-78",
+            "function": "Test.api.controllers.UserController.handle_get_profile",
+            "confidence": 0.6,
+            "evidence": "The RBAC check relies on the UserRole.ADMIN role, which should be properly defined and enforced.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.UserController.handle_get_profile"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "SQL Injection",
+            "cwe": "CWE-89",
+            "function": "Test.api.controllers.UserController.handle_update_profile",
+            "confidence": 0.7,
+            "evidence": "The new_email is directly used in a database update operation without sanitization.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.UserController.handle_update_profile"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure Password Storage",
+            "cwe": "CWE-798",
+            "function": "Test.api.controllers.UserController.handle_register",
+            "confidence": 0.8,
+            "evidence": "The password is being passed directly to the register_user method without any sanitization or hashing.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.UserController.handle_register"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Deserialization of Untrusted Data",
+            "cwe": "CWE-502",
+            "function": "Test.api.controllers.AuthController.handle_restore_session",
+            "confidence": 0.8,
+            "evidence": "The unpack_extended_session method is called with user-controlled data from request_body.",
+            "partition_id": 2,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.main.execute_flow_demonstration",
+                    "source_partition": 4,
+                    "entry_node": "Test.api.routes.ApiRouter.dispatch",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter.dispatch",
+                        "Test.api.controllers.AuthController.handle_restore_session"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "JWT Injection",
+            "cwe": "CWE-79",
+            "function": "Test.auth.token_manager.TokenManager.create_session_token",
+            "confidence": 0.8,
+            "evidence": "The user-controlled inputs (user_id, username, role, metadata) are included in the JWT payload.",
+            "partition_id": 3,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.AuthController.handle_emergency_login",
+                    "source_partition": 7,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token"
+                    ]
+                },
+                {
+                    "source_node": "Test.api.controllers.AuthController.handle_login",
+                    "source_partition": 2,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.register_user",
+                    "source_partition": 1,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Potential Denial of Service",
+            "cwe": "CWE-78",
+            "function": "Test.auth.token_manager.TokenManager.validate_session_token",
+            "confidence": 0.9,
+            "evidence": "The function catches ValueError and UnicodeDecodeError but does not handle them effectively, potentially allowing an attacker to cause repeated failures.",
+            "partition_id": 3,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.routes.ApiRouter.dispatch",
+                    "source_partition": 2,
+                    "entry_node": "Test.api.routes.ApiRouter._extract_session",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter._extract_session",
+                        "Test.auth.token_manager.TokenManager.validate_session_token"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure Secret Key Management",
+            "cwe": "CWE-798",
+            "function": "Test.auth.token_manager.TokenManager._calculate_hmac",
+            "confidence": 0.8,
+            "evidence": "The secret key is used directly in the HMAC computation without proper management.",
+            "partition_id": 3,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.AuthController.handle_emergency_login",
+                    "source_partition": 7,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                },
+                {
+                    "source_node": "Test.api.routes.ApiRouter.dispatch",
+                    "source_partition": 2,
+                    "entry_node": "Test.api.routes.ApiRouter._extract_session",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter._extract_session",
+                        "Test.auth.token_manager.TokenManager.validate_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                },
+                {
+                    "source_node": "Test.api.controllers.AuthController.handle_login",
+                    "source_partition": 2,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.register_user",
+                    "source_partition": 1,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Potential Input Manipulation",
+            "cwe": "CWE-89",
+            "function": "Test.auth.token_manager.TokenManager._calculate_hmac",
+            "confidence": 0.7,
+            "evidence": "The data parameter is directly used in the HMAC computation without sanitization.",
+            "partition_id": 3,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.api.controllers.AuthController.handle_emergency_login",
+                    "source_partition": 7,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                },
+                {
+                    "source_node": "Test.api.routes.ApiRouter.dispatch",
+                    "source_partition": 2,
+                    "entry_node": "Test.api.routes.ApiRouter._extract_session",
+                    "internal_path": [
+                        "Test.api.routes.ApiRouter._extract_session",
+                        "Test.auth.token_manager.TokenManager.validate_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                },
+                {
+                    "source_node": "Test.api.controllers.AuthController.handle_login",
+                    "source_partition": 2,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                },
+                {
+                    "source_node": "Test.services.user_service.UserService.register_user",
+                    "source_partition": 1,
+                    "entry_node": "Test.auth.token_manager.TokenManager.create_session_token",
+                    "internal_path": [
+                        "Test.auth.token_manager.TokenManager.create_session_token",
+                        "Test.auth.token_manager.TokenManager._calculate_hmac"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure Deserialization",
             "cwe": "CWE-502",
             "function": "Test.auth.token_manager.TokenManager.pack_extended_session",
-            "confidence": 1.0,
-            "evidence": "The function uses pickle.dumps to serialize the session_state dictionary, which can lead to unsafe deserialization if the serialized data is received from an untrusted source.",
+            "confidence": 0.7,
+            "evidence": "The use of pickle.dumps() without proper validation or sanitization.",
             "partition_id": 4,
             "cross_boundary": false
         },
         {
-            "vulnerability": "Path Traversal",
+            "vulnerability": "Directory Traversal",
             "cwe": "CWE-22",
-            "function": "Test.db.connection.DatabaseManager._ensure_storage_directory",
+            "function": "Test.db.connection.DatabaseManager.get_instance",
+            "confidence": 1.0,
+            "evidence": "The db_path parameter is directly used to open a database file without any sanitization.",
+            "partition_id": 4,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "SQL Injection",
+            "cwe": "CWE-89",
+            "function": "Test.db.repository.DocumentRepository.__init__",
+            "confidence": 1.0,
+            "evidence": "The `self.db` attribute is used in database operations without proper sanitization.",
+            "partition_id": 4,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Insecure Singleton Usage",
+            "cwe": "CWE-587",
+            "function": "Test.db.repository.UserRepository.__init__",
+            "confidence": 0.9,
+            "evidence": "The UserRepository uses a singleton instance of DatabaseManager, which can be manipulated by other parts of the application.",
+            "partition_id": 4,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Insecure Authentication",
+            "cwe": "CWE-79",
+            "function": "Test.api.routes.ApiRouter",
             "confidence": 0.8,
-            "evidence": "The `os.path.dirname` function could potentially allow path traversal if `self.db_path` contains malicious input.",
+            "evidence": "The `handle_login`, `handle_register`, and `handle_restore_session` methods may be vulnerable due to lack of proper input validation.",
+            "partition_id": 4,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Unsanitized User Input",
+            "cwe": "CWE-88",
+            "function": "Test.api.routes.ApiRouter",
+            "confidence": 0.7,
+            "evidence": "The `handle_get_profile`, `handle_update_profile`, `handle_audit_search`, `handle_diagnostics_ping`, `handle_upload`, and `handle_download` methods use user-controlled inputs without proper sanitization.",
+            "partition_id": 4,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Directory Traversal",
+            "cwe": "CWE-78",
+            "function": "Test.db.connection.DatabaseManager._ensure_storage_directory",
+            "confidence": 0.9,
+            "evidence": "os.makedirs(parent_dir, exist_ok=True)",
             "partition_id": 5,
             "cross_boundary": false
         },
         {
-            "vulnerability": "Hardcoded Credentials",
-            "cwe": "CWE-798",
+            "vulnerability": "Insecure Configuration",
+            "cwe": "CWE-78",
             "function": "Test.core.config.AppConfig",
-            "confidence": 1.0,
-            "evidence": "The 'EMERGENCY_RECOVERY_KEY' is hardcoded as a string literal.",
-            "partition_id": 5,
-            "cross_boundary": false
-        },
-        {
-            "vulnerability": "Hardcoded Credentials",
-            "cwe": "CWE-798",
-            "function": "Test.core.config.AppConfig",
-            "confidence": 1.0,
-            "evidence": "The 'TOKEN_SECRET' is hardcoded as a string literal.",
+            "confidence": 0.8,
+            "evidence": "Environment variables like NEXUS_DEBUG, NEXUS_STORAGE_DIR, etc., are used without proper validation or sanitization.",
             "partition_id": 5,
             "cross_boundary": false
         },
         {
             "vulnerability": "Command Injection",
-            "cwe": "CWE-78",
+            "cwe": "78",
             "function": "Test.services.admin_service.AdminService",
             "confidence": 1.0,
-            "evidence": "The `run_network_diagnostic` method constructs a shell command using string formatting with untrusted input (`target_host`). This can lead to command injection.",
+            "evidence": "The `run_network_diagnostic` function constructs a shell command using user-controlled input (`target_host`) and executes it with `shell=True`.",
             "partition_id": 5,
             "cross_boundary": false
         },
         {
-            "vulnerability": "Path Traversal",
+            "vulnerability": "SQL Injection",
+            "cwe": "CWE-79",
+            "function": "Test.services.user_service.UserService",
+            "confidence": 0.8,
+            "evidence": "The UserRepo methods may be vulnerable to SQL injection if they include user inputs directly in SQL queries.",
+            "partition_id": 5,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Sensitive Information Leakage",
+            "cwe": "CWE-200",
+            "function": "Test.services.user_service.UserService",
+            "confidence": 0.6,
+            "evidence": "The API exposes user details such as user_id, username, and token.",
+            "partition_id": 5,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Directory Traversal",
             "cwe": "CWE-22",
             "function": "Test.services.document_service.DocumentService._ensure_storage_dir",
             "confidence": 0.8,
-            "evidence": "The `storage_dir` attribute is used directly in `os.makedirs`, which could allow path traversal if `storage_dir` contains user-controlled input.",
+            "evidence": "os.makedirs(self.storage_dir, exist_ok=True)",
             "partition_id": 5,
             "cross_boundary": false
         },
         {
-            "vulnerability": "Unsafe Deserialization",
-            "cwe": "502",
+            "vulnerability": "Insecure Deserialization",
+            "cwe": "CWE-78",
             "function": "Test.auth.token_manager.TokenManager",
             "confidence": 1.0,
-            "evidence": "The `unpack_extended_session` method uses `pickle.loads`, which can execute arbitrary code and lead to unsafe deserialization.",
+            "evidence": "The functions `pack_extended_session` and `unpack_extended_session` use `pickle` for serialization and deserialization, respectively.",
             "partition_id": 6,
             "cross_boundary": false
         },
         {
-            "vulnerability": "Path Traversal",
-            "cwe": "CWE-22",
-            "function": "Test.services.document_service.DocumentService.retrieve_document_content",
+            "vulnerability": "JWT-like Token Construction Without Proper Validation",
+            "cwe": "CWE-327",
+            "function": "Test.auth.token_manager.TokenManager",
+            "confidence": 1.0,
+            "evidence": "The `create_session_token` function constructs a token without validating the payload contents.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "SQL Injection",
+            "cwe": "89",
+            "function": "Test.api.controllers.AdminController",
             "confidence": 0.8,
-            "evidence": "The `file_identifier` parameter is used directly in `os.path.join`, which could allow path traversal if the input is not properly validated.",
+            "evidence": "The 'action', 'date_from', 'status', and 'limit' parameters in 'handle_audit_search' are directly taken from user input.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Command Injection",
+            "cwe": "78",
+            "function": "Test.api.controllers.AdminController",
+            "confidence": 0.8,
+            "evidence": "The 'target_host' parameter in 'handle_diagnostics_ping' is directly taken from user input.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Insecure Configuration",
+            "cwe": "CWE-78",
+            "function": "Test.auth.authenticator.Authenticator.__init__",
+            "confidence": 0.5,
+            "evidence": "Both 'salt_bytes' and 'iterations' are configurable via 'AppConfig', which could lead to insecure configurations.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Broken Access Control",
+            "cwe": "CWE-284",
+            "function": "Test.api.controllers.UserController",
+            "confidence": 1.0,
+            "evidence": "The handle_get_profile function checks 'user_id' against the session user ID and admin role.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Potential Input Handling Issue",
+            "cwe": "CWE-78",
+            "function": "Test.api.controllers.UserController",
+            "confidence": 0.5,
+            "evidence": "The handle_register and handle_update_profile functions extract user-controlled inputs ('username', 'email', 'password', 'role') and pass them to service methods.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Deserialization of Untrusted Data",
+            "cwe": "CWE-502",
+            "function": "Test.api.controllers.AuthController",
+            "confidence": 0.8,
+            "evidence": "The `handle_restore_session` function calls `self.token_mgr.unpack_extended_session(session_blob)` without any sanitization or validation.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Directory Traversal",
+            "cwe": "CWE-22",
+            "function": "Test.api.controllers.DocumentController",
+            "confidence": 0.7,
+            "evidence": "The `filename` parameter in `handle_upload` is derived from user-controlled data.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "MIME Type Spoofing",
+            "cwe": "CWE-94",
+            "function": "Test.api.controllers.DocumentController",
+            "confidence": 0.5,
+            "evidence": "The `content_type` parameter in `handle_upload` is derived from user-controlled data.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Unauthorized Access",
+            "cwe": "CWE-200",
+            "function": "Test.api.controllers.DocumentController",
+            "confidence": 0.8,
+            "evidence": "The `file` parameter in `handle_download` is derived from user-controlled data.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "SQL Injection",
+            "cwe": "CWE-89",
+            "function": "Test.auth.authenticator.Authenticator",
+            "confidence": 0.7,
+            "evidence": "The `username` parameter in `authenticate_credentials` is used in a database query without proper sanitization.",
+            "partition_id": 6,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Timing Attack",
+            "cwe": "CWE-359",
+            "function": "Test.services.user_service.UserService.change_user_password",
+            "confidence": 0.7,
+            "evidence": "The password verification uses direct equality comparison, which could be exploited in a timing attack.",
+            "partition_id": 8,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Insecure Input Validation",
+            "cwe": "CWE-78",
+            "function": "Test.auth.authenticator.Authenticator.verify_password",
+            "confidence": 0.9,
+            "evidence": "The plain_password is directly taken from user input without any validation.",
+            "partition_id": 8,
+            "cross_boundary": true,
+            "vectors": [
+                {
+                    "source_node": "Test.auth.authenticator.Authenticator.authenticate_credentials",
+                    "source_partition": 1,
+                    "entry_node": "Test.auth.authenticator.Authenticator.verify_password",
+                    "internal_path": [
+                        "Test.auth.authenticator.Authenticator.verify_password"
+                    ]
+                }
+            ]
+        },
+        {
+            "vulnerability": "Insecure File Handling",
+            "cwe": "CWE-78",
+            "function": "Test.services.document_service.DocumentService.retrieve_document_content",
+            "confidence": 0.9,
+            "evidence": "The function reads file content without proper sanitization or validation.",
             "partition_id": 9,
             "cross_boundary": true,
             "vectors": [
@@ -213,8 +957,26 @@
             "cwe": "CWE-89",
             "function": "Test.db.query_builder.DynamicQueryBuilder",
             "confidence": 1.0,
-            "evidence": "Raw SQL string formatting with untrusted input from `action_filter`, `status_filter`, and `date_from`.",
+            "evidence": "The SQL query is constructed using string formatting with user-provided inputs directly embedded into the SQL string.",
             "partition_id": 10,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Directory Traversal",
+            "cwe": "CWE-22",
+            "function": "Test.services.document_service.DocumentService",
+            "confidence": 0.9,
+            "evidence": "The `storage_dir` parameter in `__init__` and the `file_identifier` parameter in `retrieve_document_content` are user-controlled and could be used to traverse directories.",
+            "partition_id": 13,
+            "cross_boundary": false
+        },
+        {
+            "vulnerability": "Arbitrary File Write",
+            "cwe": "CWE-78",
+            "function": "Test.services.document_service.DocumentService",
+            "confidence": 0.8,
+            "evidence": "The `upload_document` function writes user-controlled content to a file path constructed from `filename`, which could allow overwriting arbitrary files.",
+            "partition_id": 13,
             "cross_boundary": false
         }
     ]
