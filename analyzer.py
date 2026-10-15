@@ -1,166 +1,172 @@
 import json
-import ast
 from pathlib import Path
-from graph import get_module_name
+from typing import Dict, List, Any
+
+from models import BoundaryEdge, ClusterInfo, GraphEdge, SymbolNode
 
 
-def extract_symbol_snippet(source_code, symbol_name):
+def build_symbol_card(
+    sym: SymbolNode,
+    incoming_edges: List[GraphEdge],
+    outgoing_edges: List[GraphEdge],
+    symbols: Dict[str, SymbolNode],
+) -> Dict[str, Any]:
     """
-    Extracts only the specific class or function code block from source code using AST.
+    Constructs a compact, high-signal Symbol Card for Phase 1 Discovery.
+    Contains signature, decorators, guards, dynamic local expressions, external calls,
+    and resolved internal call relationships—without dumping raw source lines.
     """
-    try:
-        tree = ast.parse(source_code)
-        target_name = symbol_name.split(".")[-1]
-
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                if node.name == target_name:
-                    lines = source_code.splitlines()
-                    # ast line numbers are 1-indexed
-                    start = node.lineno - 1
-                    end = node.end_lineno
-                    return "\n".join(lines[start:end])
-    except Exception:
-        pass
-    return None
-
-
-def build_partition_context(partition, boundaries, files_data, repo_path):
-    """
-    Constructs an optimized, symbol-level context payload for an SLM worker.
-    """
-    part_id = partition["partition_id"]
-
-    # 1. Filter out built-ins and external calls; retain repository symbols only
-    internal_symbols = [n for n in partition["nodes"] if n.startswith(repo_path.name)]
-
-    # Map module names to raw source code
-    file_sources = {}
-    for f in files_data:
-        mod_name = get_module_name(f.path, repo_path.parent)
-        try:
-            file_sources[mod_name] = Path(f.path).read_text(encoding="utf-8")
-        except Exception:
-            continue
-
-    # 2. Extract ONLY the relevant function/class code snippets
-    scoped_code = {}
-    for sym in internal_symbols:
-        parts = sym.split(".")
-        # Determine the module part (e.g., Test.db.query_builder)
-        for i in range(len(parts), 0, -1):
-            possible_mod = ".".join(parts[:i])
-            if possible_mod in file_sources:
-                snippet = extract_symbol_snippet(file_sources[possible_mod], parts[-1])
-                if snippet:
-                    scoped_code[sym] = snippet
-                break
-
-    # 3. Boundaries
-    incoming = [
+    ext_calls = [
         {
-            "source": b["source_node"],
-            "target": b["target_node"],
-            "from_partition": b["source_partition"],
+            "line": c.line,
+            "call": f"{c.callee_expr}({c.args_preview})",
+            "is_dynamic_arg": c.is_dynamic_arg,
         }
-        for b in boundaries
-        if b["target_partition"] == part_id
+        for c in sym.calls
+        if c.resolution_status == "EXTERNAL"
     ]
-    outgoing = [
+
+    internal_calls = []
+    for e in outgoing_edges:
+        if e.kind == "CALLS":
+            tgt = symbols.get(e.target)
+            # Find args preview
+            args_prev = ""
+            is_dyn = False
+            for c in sym.calls:
+                if c.line == e.line and e.target in c.resolved_targets:
+                    args_prev = c.args_preview
+                    is_dyn = c.is_dynamic_arg
+                    break
+            internal_calls.append(
+                {
+                    "target": e.target,
+                    "target_cluster": tgt.cluster_id if tgt else None,
+                    "line": e.line,
+                    "args": args_prev,
+                    "confidence": e.confidence,
+                    "is_dynamic_arg": is_dyn,
+                }
+            )
+
+    called_by = [
         {
-            "source": b["source_node"],
-            "target": b["target_node"],
-            "to_partition": b["target_partition"],
+            "source": e.source,
+            "source_cluster": (
+                symbols[e.source].cluster_id if e.source in symbols else None
+            ),
+            "line": e.line,
+            "confidence": e.confidence,
         }
-        for b in boundaries
-        if b["source_partition"] == part_id
+        for e in incoming_edges
+        if e.kind == "CALLS"
     ]
 
     return {
-        "partition_id": part_id,
-        "internal_symbols": internal_symbols,
-        "boundary_incoming": incoming,
-        "boundary_outgoing": outgoing,
-        "scoped_code": scoped_code,
+        "id": sym.id,
+        "kind": sym.kind,
+        "location": f"{sym.file_path}:{sym.start_line}-{sym.end_line}",
+        "signature": sym.signature,
+        "decorators": sym.decorators,
+        "guards": [f"L{g.line} [{g.kind}]: {g.preview}" for g in sym.guards],
+        "dynamic_expressions": sym.dynamic_locals,
+        "returns_dynamic": sym.returns_dynamic,
+        "calls_internal": internal_calls,
+        "calls_external": ext_calls,
+        "called_by": called_by,
     }
 
 
-def export_partition_contexts(
-    partitions, boundaries, files, repo_path, output_path="partition_contexts.json"
-):
-    contexts = []
-    for p in partitions:
-        ctx = build_partition_context(p, boundaries, files, repo_path)
-        if ctx["scoped_code"]:  # Only export partitions with actual code definitions
-            contexts.append(ctx)
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(contexts, f, indent=2)
-
-    print(f"\n[+] Exported {len(contexts)} focused partition contexts to {output_path}")
-    return contexts
-
-
-def mock_slm_worker(context_payload):
+def export_repository_bundle(
+    repo_name: str,
+    symbols: Dict[str, SymbolNode],
+    edges: List[GraphEdge],
+    clusters: List[ClusterInfo],
+    boundaries: List[BoundaryEdge],
+    resolution_stats: Dict[str, Any],
+    cluster_metrics: Dict[str, Any],
+    output_path: str = "repo_bundle.json",
+) -> Dict[str, Any]:
     """
-    Simulates the SLM inference process.
-    Eventually, this will be replaced with local model inference.
+    Exports a single, self-contained JSON bundle for the Two-Pass Kaggle Workflow.
+    Contains:
+      1. repository_overview: High-level summary, entry points, high-risk sinks, metrics.
+      2. discovery_clusters: Compact Phase 1 Cluster Maps (Symbol Cards + Boundary Contracts).
+      3. symbol_index: Full SymbolNode records including exact line-numbered source code for Phase 2.
+      4. edges: Full typed dependency graph edges for multi-hop path tracing in Phase 2.
     """
-    findings = []
-    part_id = context_payload["partition_id"]
-    nodes_str = str(context_payload["internal_nodes"])
+    incoming_by_sym: Dict[str, List[GraphEdge]] = {sid: [] for sid in symbols}
+    outgoing_by_sym: Dict[str, List[GraphEdge]] = {sid: [] for sid in symbols}
+    for e in edges:
+        if e.source in outgoing_by_sym:
+            outgoing_by_sym[e.source].append(e)
+        if e.target in incoming_by_sym:
+            incoming_by_sym[e.target].append(e)
 
-    # HARDCODED MOCKS for testing the pipeline architecture
-    if "Test.services.admin_service.AdminService.run_network_diagnostic" in nodes_str:
-        findings.append(
-            {
-                "vulnerability": "Command Injection",
-                "cwe": "CWE-78",
-                "function": "Test.services.admin_service.AdminService.run_network_diagnostic",
-                "confidence": 0.95,
-                "evidence": "subprocess.run is called with unvalidated input.",
-            }
-        )
-
-    if (
-        "Test.db.query_builder.DynamicQueryBuilder.run_dynamic_audit_search"
-        in nodes_str
-    ):
-        findings.append(
-            {
-                "vulnerability": "SQL Injection",
-                "cwe": "CWE-89",
-                "function": "Test.db.query_builder.DynamicQueryBuilder.run_dynamic_audit_search",
-                "confidence": 0.92,
-                "evidence": "Dynamic string formatting used in execute_raw_query.",
-            }
-        )
-
-    return {"partition_id": part_id, "findings": findings}
-
-
-def run_parallel_analysis(partitions, boundaries, files, repo_path):
-    print("\n" + "=" * 50)
-    print("PROCESS 4.0: PARALLEL SLM VULNERABILITY DETECTION (MOCKED)")
-    print("=" * 50)
-
-    all_findings = []
-
-    for p in partitions:
-        # Build context
-        context = build_partition_context(p, boundaries, files, repo_path)
-
-        # Pass to SLM
-        result = mock_slm_worker(context)
-
-        if result["findings"]:
-            print(
-                f"\n[+] Partition {p['partition_id']} SLM Analysis Complete. Found {len(result['findings'])} potential issues."
-            )
-            for finding in result["findings"]:
-                print(
-                    f"    - {finding['vulnerability']} ({finding['cwe']}) in {finding['function']}"
+    discovery_clusters = []
+    for c in clusters:
+        cards = []
+        for sid in c.symbol_ids:
+            sym = symbols[sid]
+            # Include classes, functions, and methods in cluster cards
+            if sym.kind in ("class", "function", "method"):
+                cards.append(
+                    build_symbol_card(
+                        sym,
+                        incoming_by_sym.get(sid, []),
+                        outgoing_by_sym.get(sid, []),
+                        symbols,
+                    )
                 )
-            all_findings.append(result)
 
-    return all_findings
+        inc_bounds = [
+            b.to_dict() for b in boundaries if b.target_cluster == c.cluster_id
+        ]
+        out_bounds = [
+            b.to_dict() for b in boundaries if b.source_cluster == c.cluster_id
+        ]
+
+        discovery_clusters.append(
+            {
+                "cluster_id": c.cluster_id,
+                "label": c.label,
+                "modules_covered": c.modules_covered,
+                "entry_points": c.entry_points,
+                "external_sink_symbols": c.external_sink_symbols,
+                "estimated_code_lines": c.estimated_code_lines,
+                "symbol_cards": cards,
+                "boundary_incoming": inc_bounds,
+                "boundary_outgoing": out_bounds,
+            }
+        )
+
+    bundle = {
+        "repository_name": repo_name,
+        "overview": {
+            "resolution_stats": {
+                k: v for k, v in resolution_stats.items() if k != "external_calls"
+            },
+            "cluster_metrics": cluster_metrics,
+            "all_entry_points": [ep for c in clusters for ep in c.entry_points],
+            "dynamic_sink_candidates": [
+                {
+                    "symbol": sid,
+                    "cluster_id": symbols[sid].cluster_id,
+                    "dynamic_locals": symbols[sid].dynamic_locals,
+                }
+                for sid in sorted(symbols)
+                if symbols[sid].dynamic_locals
+            ],
+        },
+        "discovery_clusters": discovery_clusters,
+        "symbol_index": {sid: sym.to_dict() for sid, sym in symbols.items()},
+        "edges": [e.to_dict() for e in edges],
+        "boundaries": [b.to_dict() for b in boundaries],
+    }
+
+    out_file = Path(output_path)
+    with open(out_file, "w", encoding="utf-8") as f:
+        json.dump(bundle, f, indent=2)
+
+    print(f"\n[+] Exported self-contained Kaggle bundle to: {out_file.resolve()}")
+    return bundle

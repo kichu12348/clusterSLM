@@ -1,43 +1,72 @@
 import json
+from typing import Dict, List, Any
 
 
-def generate_report(reconciled_findings, output_path="clusterslm_report.json"):
+def generate_report(
+    reconciled_findings: List[Dict[str, Any]],
+    bundle: Dict[str, Any],
+    output_path: str = "clusterslm_report.json",
+) -> Dict[str, Any]:
     """
-    Process 6.0: Result Aggregation & Reporting.
-    Generates the final vulnerability report and JSON artifact.
+    Generates the final evidence-backed vulnerability report and CLI summary.
+    Separates confirmed findings from rejected hypotheses and unresolved investigations.
     """
-    print("\n" + "=" * 50)
-    print("PROCESS 6.0: RESULT AGGREGATION & REPORTING")
-    print("=" * 50)
+    confirmed = [f for f in reconciled_findings if f.get("final_status") == "CONFIRMED"]
+    rejected = [
+        f for f in reconciled_findings if "REJECTED" in f.get("final_status", "")
+    ]
+    unresolved = [
+        f for f in reconciled_findings if "UNRESOLVED" in f.get("final_status", "")
+    ]
 
     report = {
-        "project": "ClustersLM",
-        "total_vulnerabilities": len(reconciled_findings),
-        "findings": reconciled_findings,
+        "project": "ClusterSLM",
+        "repository": bundle.get("repository_name"),
+        "metrics": bundle.get("overview", {}),
+        "summary": {
+            "total_hypotheses_evaluated": len(reconciled_findings),
+            "confirmed_vulnerabilities": len(confirmed),
+            "rejected_hypotheses": len(rejected),
+            "unresolved_investigations": len(unresolved),
+        },
+        "confirmed_findings": confirmed,
+        "unresolved_investigations": unresolved,
+        "rejected_hypotheses": rejected,
     }
 
-    # Write the machine-readable artifact
     with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=4)
+        json.dump(report, f, indent=2)
 
-    print(f"[+] Final report successfully generated: {output_path}")
+    print("\n" + "=" * 72)
+    print("CLUSTERSLM FINAL VERIFICATION REPORT")
+    print("=" * 72)
+    print(f"Artifact saved to        : {output_path}")
+    print(f"Confirmed Vulnerabilities: {len(confirmed)}")
+    print(f"Rejected Hypotheses      : {len(rejected)}")
+    print(f"Unresolved Investigations: {len(unresolved)}")
 
-    # Print a clean, human-readable summary for the CLI
-    for i, issue in enumerate(reconciled_findings, 1):
-        print(f"\n[{i}] {issue['vulnerability']} ({issue['cwe']})")
-        print(f"    Confidence : {issue['confidence'] * 100}%")
-        print(f"    Sink Point : {issue['symbol']} (Partition {issue['partition_id']})")
+    for i, issue in enumerate(confirmed, start=1):
+        cwe = issue.get("cwe", "CWE-Unknown")
+        vuln = issue.get("vulnerability", "Vulnerability")
+        conf = int(float(issue.get("confidence", 0.0)) * 100)
+        chain_type = (
+            f"Cross-Cluster (Clusters {' -> '.join(map(str, issue['clusters_crossed']))})"
+            if issue.get("cross_boundary")
+            else f"Intra-Cluster (Cluster {issue.get('sink_cluster')})"
+        )
 
-        if issue.get("cross_boundary"):
-            print("    Chain Type : Cross-Partition")
-            for vec in issue["vectors"]:
-                print(
-                    f"    Origin     : {vec['source_node']} (Partition {vec['source_partition']})"
-                )
-                print(f"    Path       : {' -> '.join(vec['internal_path'])}")
-        else:
-            print("    Chain Type : Localized")
-
-        print(f"    Evidence   : {issue['evidence']}")
+        print(f"\n[{i}] {vuln} ({cwe}) — Confidence: {conf}%")
+        print(
+            f"    Sink Location : {issue.get('sink_symbol')} ({issue.get('sink_location')})"
+        )
+        print(f"    Scope / Chain : {chain_type}")
+        print(
+            f"    Call Path     : {' -> '.join(issue.get('verified_static_path', []))}"
+        )
+        if issue.get("guards_inspected"):
+            print(f"    Safeguards    : {issue['guards_inspected']}")
+        print(f"    Evidence      : {issue.get('evidence')}")
+        if issue.get("path_uncertainties"):
+            print(f"    Uncertainties : {issue['path_uncertainties']}")
 
     return report

@@ -1,136 +1,83 @@
+from typing import Dict, List
 import networkx as nx
-from pathlib import Path
+
+from models import GraphEdge, SymbolNode
 
 
-def get_module_name(file_path, repo_path):
+def build_repository_graph(
+    symbols: Dict[str, SymbolNode],
+    edges: List[GraphEdge],
+) -> nx.MultiDiGraph:
     """
-    Convert:
-        Test/auth/authenticator.py
-    into:
-        Test.auth.authenticator
+    Constructs the complete multi-relational repository graph.
+    Nodes are strictly internal SymbolNodes.
+    Edges carry kind (DEFINES, IMPORTS, INHERITS, CALLS), confidence, line, and weight.
     """
-    relative = file_path.relative_to(repo_path)
-    parts = list(relative.parts)
+    G = nx.MultiDiGraph()
 
-    parts[-1] = parts[-1].removesuffix(".py")
+    for sym_id, sym in symbols.items():
+        G.add_node(
+            sym_id,
+            kind=sym.kind,
+            name=sym.name,
+            module_name=sym.module_name,
+            file_path=sym.file_path,
+            start_line=sym.start_line,
+            end_line=sym.end_line,
+        )
 
-    if parts[-1] == "__init__":
-        parts.pop()
-
-    return ".".join(parts)
-
-
-def build_module_map(files, repo_path):
-    module_map = {}
-    for file in files:
-        module_name = get_module_name(file.path, repo_path.parent)
-        module_map[module_name] = file.path
-    return module_map
-
-
-def resolve_import(import_info, module_map, source_module):
-    module = import_info.module
-    level = import_info.level
-
-    if level > 0:
-        # Relative import: walk up `level` packages from the importing module
-        parts = source_module.split(".")
-        base = parts[:-level] if level <= len(parts) else []
-        target = ".".join(base + [module]) if module else ".".join(base)
-    else:
-        target = module
-
-    if target in module_map:
-        return module_map[target]
-
-    return None
-
-
-def build_dependency_graph(files, repo_path):
-    graph = nx.DiGraph()
-    module_map = build_module_map(files, repo_path)
-
-    for file in files:
-        source_module = get_module_name(file.path, repo_path.parent)
-        graph.add_node(source_module, path=str(file.path))
-
-    for file in files:
-        source_module = get_module_name(file.path, repo_path.parent)
-
-        for import_info in file.imports:
-            target_path = resolve_import(import_info, module_map, source_module)
-
-            if target_path is None:
-                continue
-
-            target_module = get_module_name(target_path, repo_path.parent)
-            graph.add_edge(source_module, target_module)
-
-    return graph
-
-
-def build_symbol_graph(edges):
-    """
-    Builds the Level-3 Function/Call Dependency Graph using NetworkX.
-    """
-    G = nx.DiGraph()
-
-    # We filter out highly common built-ins so they don't skew the partitioning algorithm
-    # (e.g., we don't want two unrelated functions clustered together just because they both call len())
-    ignore_builtins = {
-        "len",
-        "str",
-        "int",
-        "bool",
-        "isinstance",
-        "open",
-        "print",
-        "set",
-        "dict",
-        "join",
-        "lower",
-        "get",
-        "decode",
-        "encode",
-    }
-
-    for caller, callee in edges:
-        if callee not in ignore_builtins:
-            G.add_edge(caller, callee)
+    for edge in edges:
+        if edge.source in G and edge.target in G:
+            G.add_edge(
+                edge.source,
+                edge.target,
+                kind=edge.kind,
+                confidence=edge.confidence,
+                line=edge.line,
+                weight=edge.weight,
+            )
 
     return G
 
 
-def print_graph(graph):
-    print("\nDEPENDENCY GRAPH")
-    print("=" * 60)
-    print(f"Nodes: {graph.number_of_nodes()}")
-    print(f"Edges: {graph.number_of_edges()}")
-    print("\nDependencies:")
+def summarize_graph_and_resolution(
+    symbols: Dict[str, SymbolNode],
+    edges: List[GraphEdge],
+) -> Dict[str, any]:
+    """Computes diagnostic metrics for symbol resolution and graph connectivity."""
+    edge_counts_by_kind: Dict[str, int] = {}
+    call_edges_by_conf: Dict[str, int] = {}
 
-    for source, target in graph.edges():
-        print(f"  {source} -> {target}")
+    for e in edges:
+        edge_counts_by_kind[e.kind] = edge_counts_by_kind.get(e.kind, 0) + 1
+        if e.kind == "CALLS":
+            call_edges_by_conf[e.confidence] = (
+                call_edges_by_conf.get(e.confidence, 0) + 1
+            )
 
+    call_site_status: Dict[str, int] = {}
+    external_security_calls = []
 
-import matplotlib.pyplot as plt
+    for sym in symbols.values():
+        for call in sym.calls:
+            st = call.resolution_status
+            call_site_status[st] = call_site_status.get(st, 0) + 1
+            if st == "EXTERNAL":
+                external_security_calls.append(
+                    (
+                        sym.id,
+                        call.line,
+                        call.callee_expr,
+                        call.args_preview,
+                        call.is_dynamic_arg,
+                    )
+                )
 
-
-def plot_graph(graph):
-    if graph.number_of_nodes() == 0:
-        print("Nothing to plot — graph is empty.")
-        return
-
-    plt.figure(figsize=(12, 8))
-
-    pos = nx.spring_layout(graph, k=0.6, seed=42)  # consistent layout
-
-    nx.draw_networkx_nodes(graph, pos, node_size=1500, node_color="#8ecae6")
-    nx.draw_networkx_edges(
-        graph, pos, arrowstyle="-|>", arrowsize=15, edge_color="#555555"
-    )
-    nx.draw_networkx_labels(graph, pos, font_size=8)
-
-    plt.title("Module Dependency Graph")
-    plt.axis("off")
-    plt.tight_layout()
-    plt.show()
+    return {
+        "total_symbols": len(symbols),
+        "total_edges": len(edges),
+        "edges_by_kind": edge_counts_by_kind,
+        "call_edges_by_confidence": call_edges_by_conf,
+        "call_sites_by_status": call_site_status,
+        "external_calls": external_security_calls,
+    }

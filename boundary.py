@@ -1,56 +1,75 @@
-from collections import defaultdict
+from typing import Dict, List
+from models import BoundaryEdge, GraphEdge, SymbolNode
 
 
-def find_boundaries(graph, partitions):
+def extract_boundary_contracts(
+    symbols: Dict[str, SymbolNode],
+    edges: List[GraphEdge],
+) -> List[BoundaryEdge]:
     """
-    Identifies edges that cross partition boundaries.
-    Returns a list of dictionaries containing the source/target nodes and their partition IDs.
+    Identifies all CALLS edges that cross cluster boundaries and enriches them
+    with bidirectional security contracts (signatures, caller guards, target guards,
+    and target external calls).
     """
-    # 1. Create a fast lookup mapping each node to its partition ID
-    node_to_partition = {}
-    for p in partitions:
-        for node in p["nodes"]:
-            node_to_partition[node] = p["partition_id"]
+    boundaries: List[BoundaryEdge] = []
 
-    boundaries = []
-
-    # 2. Find edges where the source and target are in different partitions
-    for u, v in graph.edges():
-        part_u = node_to_partition.get(u)
-        part_v = node_to_partition.get(v)
-
-        # Skip if a node wasn't partitioned (a failsafe, shouldn't happen)
-        if not part_u or not part_v:
+    for edge in edges:
+        if edge.kind != "CALLS":
             continue
 
-        if part_u != part_v:
-            boundaries.append(
-                {
-                    "source_node": u,
-                    "source_partition": part_u,
-                    "target_node": v,
-                    "target_partition": part_v,
-                }
+        src_sym = symbols.get(edge.source)
+        tgt_sym = symbols.get(edge.target)
+        if not src_sym or not tgt_sym:
+            continue
+
+        if src_sym.cluster_id is None or tgt_sym.cluster_id is None:
+            continue
+
+        if src_sym.cluster_id == tgt_sym.cluster_id:
+            continue
+
+        # Find matching CallSite on src_sym for argument preview & dynamic flag
+        args_preview = ""
+        is_dynamic = False
+        for call in src_sym.calls:
+            if call.line == edge.line and edge.target in call.resolved_targets:
+                args_preview = call.args_preview
+                is_dynamic = call.is_dynamic_arg
+                break
+
+        caller_guards = [
+            f"L{g.line} [{g.kind}]: {g.preview}"
+            for g in src_sym.guards
+            if g.line <= edge.line
+        ]
+        target_guards = [f"L{g.line} [{g.kind}]: {g.preview}" for g in tgt_sym.guards]
+        target_ext_calls = [
+            f"L{c.line}: {c.callee_expr}({c.args_preview})"
+            + (" [DYNAMIC_ARG]" if c.is_dynamic_arg else "")
+            for c in tgt_sym.calls
+            if c.resolution_status == "EXTERNAL"
+        ]
+
+        boundaries.append(
+            BoundaryEdge(
+                source_symbol=src_sym.id,
+                source_cluster=src_sym.cluster_id,
+                source_signature=src_sym.signature,
+                caller_guards=caller_guards,
+                target_symbol=tgt_sym.id,
+                target_cluster=tgt_sym.cluster_id,
+                target_signature=tgt_sym.signature,
+                target_guards=target_guards,
+                target_external_calls=target_ext_calls,
+                line=edge.line,
+                confidence=edge.confidence,
+                args_preview=args_preview,
+                is_dynamic_arg=is_dynamic,
             )
+        )
 
+    # Sort deterministically by source cluster, target cluster, source symbol, line
+    boundaries.sort(
+        key=lambda b: (b.source_cluster, b.target_cluster, b.source_symbol, b.line)
+    )
     return boundaries
-
-
-def print_boundaries(boundaries):
-    print("\n" + "=" * 50)
-    print("PROCESS 3.0/5.0: BOUNDARY IDENTIFICATION")
-    print("=" * 50)
-
-    print(f"\nDiscovered {len(boundaries)} cross-partition boundary edges.\n")
-
-    # Group the edges by their partition pairs for readable output
-    grouped = defaultdict(list)
-    for b in boundaries:
-        pair = (b["source_partition"], b["target_partition"])
-        grouped[pair].append((b["source_node"], b["target_node"]))
-
-    for (p_src, p_tgt), edges in sorted(grouped.items()):
-        print(f"Boundary: Partition {p_src} -> Partition {p_tgt}")
-        for u, v in sorted(edges):
-            print(f"  {u}\n    -> {v}")
-        print()
