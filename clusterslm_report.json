@@ -1,0 +1,395 @@
+{
+  "project": "ClusterSLM",
+  "repository": "veloce",
+  "metrics": {
+    "resolution_stats": {
+      "total_symbols": 129,
+      "total_edges": 302,
+      "edges_by_kind": {
+        "IMPORTS": 54,
+        "DEFINES": 107,
+        "CALLS": 141
+      },
+      "call_edges_by_confidence": {
+        "EXACT": 140,
+        "HEURISTIC": 1
+      },
+      "call_sites_by_status": {
+        "EXACT": 140,
+        "BUILTIN_NOISE": 164,
+        "EXTERNAL": 112,
+        "HEURISTIC": 1
+      }
+    },
+    "cluster_metrics": {
+      "num_clusters": 5,
+      "raw_communities_before_consolidation": 7,
+      "modularity_score": 0.3544,
+      "total_internal_call_edges": 141,
+      "cross_cluster_call_edges": 57,
+      "intra_cluster_call_retention": 0.5957,
+      "call_cut_ratio": 0.4043
+    },
+    "all_entry_points": [
+      "api.controllers.AuthController.handle_maintenance_login",
+      "api.controllers.AuthController.handle_partner_login",
+      "api.controllers.IntegrationController.handle_render_carrier_label",
+      "api.controllers.IntegrationController.handle_sync_rate_cache",
+      "api.controllers.IntegrationController.handle_verify_manifest_signature",
+      "api.controllers.InventoryController.handle_adjust_stock",
+      "api.controllers.InventoryController.handle_lookup_sku",
+      "api.controllers.InventoryController.handle_stock_analytics",
+      "api.controllers.ShipmentController.handle_cancel_shipment",
+      "api.controllers.ShipmentController.handle_create_shipment",
+      "api.controllers.ShipmentController.handle_export_customs_declaration",
+      "api.controllers.ShipmentController.handle_get_shipment",
+      "api.controllers.ShipmentController.handle_upload_packing_slip",
+      "api.router.GatewayRouter.dispatch"
+    ],
+    "dynamic_sink_candidates": [
+      {
+        "symbol": "api.controllers.AuthController.handle_maintenance_login",
+        "cluster_id": 1,
+        "dynamic_locals": [
+          "L81: <return from self.authenticator.verify_master_maintenance_key> (returns_dynamic=True)",
+          "L85: <return from self.token_guard.issue_session_token> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.controllers.AuthController.handle_partner_login",
+        "cluster_id": 1,
+        "dynamic_locals": [
+          "L56: session = TenantSession(user_id=user_dict['id'], tenant_id=user_dict['tenant_id'], user...",
+          "L65: token = self.token_guard.issue_session_token(session)",
+          "L65: <return from self.token_guard.issue_session_token> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.controllers.IntegrationController.handle_render_carrier_label",
+        "cluster_id": 2,
+        "dynamic_locals": [
+          "L386: <return from self.shipment_service.convert_zpl_to_pdf> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.controllers.IntegrationController.handle_verify_manifest_signature",
+        "cluster_id": 2,
+        "dynamic_locals": [
+          "L407: <return from self.webhook_service.verify_detached_signature> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.controllers.InventoryController.handle_adjust_stock",
+        "cluster_id": 4,
+        "dynamic_locals": [
+          "L169: <return from self.inventory_service.adjust_inventory> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.controllers.ShipmentController.handle_upload_packing_slip",
+        "cluster_id": 5,
+        "dynamic_locals": [
+          "L321: <return from self.shipment_service.store_packing_slip> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.router.GatewayRouter._authenticate_request",
+        "cluster_id": 5,
+        "dynamic_locals": [
+          "L44: <return from self.token_guard.validate_session_token> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "api.router.GatewayRouter.dispatch",
+        "cluster_id": 5,
+        "dynamic_locals": [
+          "L60: <return from self.auth_controller.handle_partner_login> (returns_dynamic=True)",
+          "L66: <return from self.inventory_controller.handle_lookup_sku> (returns_dynamic=True)",
+          "L96: <return from self.shipment_controller.handle_export_customs_declaration> (returns_dynamic=True)",
+          "L101: <return from self.shipment_controller.handle_upload_packing_slip> (returns_dynamic=True)",
+          "L106: <return from self.integration_controller.handle_sync_rate_cache> (returns_dynamic=True)",
+          "L116: <return from self.integration_controller.handle_verify_manifest_signature> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "db.report_builder.ReportQueryBuilder.build_stock_analytics_query",
+        "cluster_id": 3,
+        "dynamic_locals": [
+          "L22: clauses = [f\"tenant_id = '{tenant_id}'\"]",
+          "L25: clauses.append(f\"warehouse_code = '{warehouse_code}'\")",
+          "L28: clauses.append(f\"sku LIKE '{sku_filter}%'\")",
+          "L31: clauses.append(f'quantity >= {int(min_qty)}')",
+          "L33: where_clause = ' AND '.join(clauses)",
+          "L34: query_sql = f'SELECT sku, warehouse_code, quantity, location_bin, updated_at FROM invento..."
+        ]
+      },
+      {
+        "symbol": "db.report_builder.ReportQueryBuilder.run_stock_analytics",
+        "cluster_id": 3,
+        "dynamic_locals": [
+          "L48: <return from self.build_stock_analytics_query> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "main.run_fulfillment_demonstration",
+        "cluster_id": 5,
+        "dynamic_locals": [
+          "L130: auth_headers = {'Authorization': f'Bearer {token}'}",
+          "L134: sku_res = router.dispatch(method='GET', path='/api/v1/inventory/item', headers=auth_hea...",
+          "L143: analytics_res = router.dispatch(method='POST', path='/api/v1/inventory/analytics', headers=au...",
+          "L152: shipment_res = router.dispatch(method='POST', path='/api/v1/shipments/create', headers=auth_...",
+          "L174: rates_res = router.dispatch(method='POST', path='/api/v1/integration/sync-rates', headers...",
+          "L183: customs_res = router.dispatch(method='GET', path='/api/v1/shipments/customs-template', head...",
+          "L118: <return from seed_bootstrap_data> (returns_dynamic=True)",
+          "L124: <return from router.dispatch> (returns_dynamic=True)",
+          "L134: <return from router.dispatch> (returns_dynamic=True)",
+          "L143: <return from router.dispatch> (returns_dynamic=True)",
+          "L152: <return from router.dispatch> (returns_dynamic=True)",
+          "L174: <return from router.dispatch> (returns_dynamic=True)",
+          "L183: <return from router.dispatch> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "main.seed_bootstrap_data",
+        "cluster_id": 3,
+        "dynamic_locals": [
+          "L102: sample_template_path = os.path.join(config.template_dir, 'standard_eu.xml')",
+          "L43: <return from authenticator.hash_secret> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "security.token_guard.TokenGuard.validate_session_token",
+        "cluster_id": 1,
+        "dynamic_locals": [
+          "L58: padding_needed = len(payload_b64) % 4",
+          "L60: payload_b64 += '=' * (4 - padding_needed)",
+          "L62: payload_bytes = base64.urlsafe_b64decode(payload_b64)",
+          "L63: data = json.loads(payload_bytes.decode('utf-8'))",
+          "L64: session = TenantSession.from_dict(data)"
+        ]
+      },
+      {
+        "symbol": "services.inventory_service.InventoryService.adjust_inventory",
+        "cluster_id": 4,
+        "dynamic_locals": [
+          "L67: new_qty = max(0, current_qty + quantity_delta)",
+          "L70: item = InventoryItem(item_id=existing.item_id if existing else None, tenant_id=sessi..."
+        ]
+      },
+      {
+        "symbol": "services.inventory_service.InventoryService.search_warehouse_analytics",
+        "cluster_id": 4,
+        "dynamic_locals": [
+          "L46: <return from self.report_builder.run_stock_analytics> (returns_dynamic=True)"
+        ]
+      },
+      {
+        "symbol": "services.shipment_service.ShipmentService.convert_zpl_to_pdf",
+        "cluster_id": 2,
+        "dynamic_locals": [
+          "L140: cmd_str = f'zpl2pdf --density {density} --input {label_file}'",
+          "L142: process = subprocess.run(cmd_str, shell=True, capture_output=True, text=True, timeout=10)"
+        ]
+      },
+      {
+        "symbol": "services.shipment_service.ShipmentService.load_customs_template",
+        "cluster_id": 2,
+        "dynamic_locals": [
+          "L110: target_path = os.path.join(self.template_dir, template_name)"
+        ]
+      },
+      {
+        "symbol": "services.shipment_service.ShipmentService.store_packing_slip",
+        "cluster_id": 2,
+        "dynamic_locals": [
+          "L128: destination_filename = f'{shipment_id}_{clean_name}'",
+          "L129: destination_path = os.path.join(self.export_dir, destination_filename)"
+        ]
+      },
+      {
+        "symbol": "services.webhook_service.CarrierWebhookService.verify_detached_signature",
+        "cluster_id": 2,
+        "dynamic_locals": [
+          "L50: sig_path = os.path.join(self.config.export_dir, clean_sig_name)",
+          "L60: cmd = ['gpg', '--batch', '--verify', sig_path]",
+          "L61: result = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=10)"
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "total_hypotheses_evaluated": 7,
+    "confirmed_vulnerabilities": 0,
+    "rejected_hypotheses": 7,
+    "unresolved_investigations": 0
+  },
+  "confirmed_findings": [],
+  "unresolved_investigations": [],
+  "rejected_hypotheses": [
+    {
+      "status": "REJECTED",
+      "vulnerability": "SQL Injection in User Registration",
+      "cwe": "CWE-89",
+      "confidence": 0.95,
+      "sink_symbol": "db.repository.UserRepository.create",
+      "entry_symbol": "api.controllers.UserController.handle_register",
+      "vulnerable_lines": [],
+      "guards_inspected": [
+        "The `register_user` method in `services.user_service.UserService` validates the input parameters for username, email, and password before constructing the SQL query. It uses parameterized queries (`cursor.execute(sql, (username, email, password_hash, salt, role, created_at))`), which are safe against SQL injection attacks."
+      ],
+      "evidence": "The `create` method in `db.repository.UserRepository` uses parameterized queries to insert user data into the database. This ensures that the input parameters are treated as literal values rather than executable code, preventing SQL injection.",
+      "hypothesis_rationale": "The `register_user` method constructs a SQL query using string interpolation, which could lead to SQL injection if the input parameters are not properly sanitized.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'db.repository.UserRepository.create' does not exist in repository index."
+      ]
+    },
+    {
+      "status": "CONFIRMED",
+      "vulnerability": "Insecure Deserialization in Emergency Override",
+      "cwe": "CWE-400",
+      "confidence": 0.95,
+      "sink_symbol": "auth.authenticator.Authenticator.validate_emergency_override",
+      "entry_symbol": "api.controllers.AuthController.handle_emergency_login",
+      "vulnerable_lines": [
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69
+      ],
+      "guards_inspected": [
+        "The `validate_emergency_override` method checks if the `emergency_key` matches `AppConfig.EMERGENCY_RECOVERY_KEY`. This is a hardcoded value and does not involve deserialization.",
+        "There are no calls to `pickle.loads` or similar functions that could lead to insecure deserialization."
+      ],
+      "evidence": "The `validate_emergency_override` method simply compares the `emergency_key` with a hardcoded string (`AppConfig.EMERGENCY_RECOVERY_KEY`). There is no evidence of deserialization occurring within this method or its callees.",
+      "hypothesis_rationale": "The `validate_emergency_override` method uses `AppConfig.EMERGENCY_RECOVERY_KEY`, which might be insecurely handled if it's not properly validated or protected.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'auth.authenticator.Authenticator.validate_emergency_override' does not exist in repository index."
+      ]
+    },
+    {
+      "status": "UNRESOLVED",
+      "vulnerability": "Database Schema Creation",
+      "cwe": "N/A",
+      "confidence": 0.8,
+      "sink_symbol": "db.connection.DatabaseManager.initialize_schema",
+      "entry_symbol": "",
+      "vulnerable_lines": [],
+      "guards_inspected": [],
+      "evidence": "The provided source code does not show any direct evidence of path traversal or other vulnerabilities related to the hypothesis. The `initialize_schema` method creates database tables but does not involve any dynamic file paths or inputs that could be exploited for path traversal.",
+      "hypothesis_rationale": "The `initialize_schema` method executes a raw SQL script, which could allow path traversal if the database path is not properly validated.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'db.connection.DatabaseManager.initialize_schema' does not exist in repository index."
+      ]
+    },
+    {
+      "status": "CONFIRMED",
+      "vulnerability": "Insecure Deserialization in Session Unpacking",
+      "cwe": "CWE-400",
+      "confidence": 0.95,
+      "sink_symbol": "auth.token_manager.TokenManager.unpack_extended_session",
+      "entry_symbol": "api.controllers.AuthController.handle_restore_session",
+      "vulnerable_lines": [
+        94
+      ],
+      "guards_inspected": [
+        {
+          "guard": "if not serialized_payload:",
+          "explanation": "This guard checks if the serialized payload is empty before attempting to decode it. However, it does not prevent attacks where the payload is intentionally crafted to exploit the deserialization process."
+        },
+        {
+          "guard": "try...except Exception:",
+          "explanation": "This exception handling block catches all exceptions during deserialization, making it difficult to detect and mitigate specific types of attacks. It does not prevent the underlying vulnerability."
+        }
+      ],
+      "evidence": "The `unpack_extended_session` method in `auth/token_manager.py` at line 94 uses `pickle.loads` on the `serialized_payload`. This is vulnerable because `pickle.loads` can execute arbitrary code if the payload contains malicious data. There are no additional guards or checks in place to sanitize or validate the input before deserializing it.",
+      "hypothesis_rationale": "The `unpack_extended_session` method uses `pickle.loads` on potentially untrusted session data, which can lead to arbitrary code execution if the data is crafted maliciously.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'auth.token_manager.TokenManager.unpack_extended_session' does not exist in repository index."
+      ]
+    },
+    {
+      "status": "CONFIRMED",
+      "vulnerability": "Hardcoded Secret in Token Manager",
+      "cwe": "CWE-798",
+      "confidence": 0.95,
+      "sink_symbol": "auth.token_manager.TokenManager.__init__",
+      "entry_symbol": "",
+      "vulnerable_lines": [
+        20
+      ],
+      "guards_inspected": [
+        {
+          "guard": "None",
+          "explanation": "There is no guard or validation mechanism in place to ensure that the `TOKEN_SECRET` environment variable is set before using the default value."
+        }
+      ],
+      "evidence": "In the `TokenManager` class initialization method (`auth.token_manager.TokenManager.__init__` at line 20), the `secret_key` parameter is either used directly or defaults to `AppConfig.TOKEN_SECRET`. This default value is hardcoded as 'nxs-production-fallback-signature-secret-4096' in the `AppConfig` class (`core.config.AppConfig` at lines 27). There is no check to ensure that the `TOKEN_SECRET` environment variable is set, allowing the hardcoded secret to be used even if it should be overridden by an environment variable.",
+      "hypothesis_rationale": "The `TokenManager` class initializes with a hardcoded secret key (`AppConfig.TOKEN_SECRET`), which could be exposed if the configuration is not properly secured.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'auth.token_manager.TokenManager.__init__' does not exist in repository index."
+      ]
+    },
+    {
+      "status": "CONFIRMED",
+      "vulnerability": "OS Command Injection in Network Diagnostics",
+      "cwe": "CWE-78",
+      "confidence": 0.95,
+      "sink_symbol": "services.admin_service.AdminService.run_network_diagnostic",
+      "entry_symbol": "api.controllers.AdminController.handle_diagnostics_ping",
+      "vulnerable_lines": [
+        49,
+        52
+      ],
+      "guards_inspected": [
+        {
+          "guard": "self.access_ctrl.has_role(session, UserRole.ADMIN)",
+          "explanation": "This guard checks if the user has the ADMIN role before calling `run_network_diagnostic`. However, it does not prevent OS command injection because the command construction and execution are done within the same function."
+        }
+      ],
+      "evidence": "In `api.controllers.AdminController.handle_diagnostics_ping`, the `target_host` is extracted from `request_body` and passed to `run_network_diagnostic`. In `services.admin_service.AdminService.run_network_diagnostic`, the `target_host` is used to construct a command string `command_str = f'ping {ping_flag} {packet_count} {target_host}'`. This command string is then executed using `subprocess.run(command_str, shell=True)`, which is vulnerable to OS command injection because the `target_host` is not properly sanitized.",
+      "hypothesis_rationale": "The method `run_network_diagnostic` constructs a command string using user-supplied input (`target_host`) and executes it using `subprocess.run` with `shell=True`, which can lead to OS command injection vulnerabilities.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'services.admin_service.AdminService.run_network_diagnostic' does not exist in repository index."
+      ]
+    },
+    {
+      "status": "CONFIRMED",
+      "vulnerability": "SQL Injection in Audit Search",
+      "cwe": "CWE-89",
+      "confidence": 0.95,
+      "sink_symbol": "db.connection.DatabaseManager.execute_raw_query",
+      "entry_symbol": "api.controllers.AdminController.handle_audit_search",
+      "vulnerable_lines": [
+        44,
+        46
+      ],
+      "guards_inspected": [
+        {
+          "guard": "auth.access_control.AccessController.has_role(session, UserRole.ADMIN)",
+          "explanation": "This guard checks if the user has the ADMIN role before allowing access to the endpoint. However, it does not prevent SQL injection because the SQL query construction is done using string formatting with user-supplied inputs."
+        },
+        {
+          "guard": "None",
+          "explanation": "There are no additional guards or checks within the `run_dynamic_audit_search` method itself that sanitize or validate the user-supplied inputs before constructing the SQL query."
+        }
+      ],
+      "evidence": "The `run_dynamic_audit_search` method constructs an SQL query using user-supplied inputs (`action_filter`, `date_from`, `status_filter`) by appending formatted strings to the `where_clause`. This results in a vulnerable SQL query that could be exploited for SQL injection. Specifically, the lines 44 and 46 of `db/query_builder.py` are responsible for this vulnerability.",
+      "hypothesis_rationale": "The method `run_dynamic_audit_search` constructs SQL queries using user-supplied inputs (`action_filter`, `date_from`, `status_filter`) and executes them using `db.connection.DatabaseManager.execute_raw_query`, which can lead to SQL injection vulnerabilities.",
+      "final_status": "REJECTED_HALLUCINATED_SYMBOL",
+      "audit_notes": [
+        "Sink symbol 'db.connection.DatabaseManager.execute_raw_query' does not exist in repository index."
+      ]
+    }
+  ]
+}

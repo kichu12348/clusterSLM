@@ -14,7 +14,7 @@ from reporter import generate_report
 
 def main():
 
-    repo_path = Path("../Test").resolve()
+    repo_path = Path("../veloce").resolve()
     if not repo_path.exists():
         print(f"Error: Path does not exist: {repo_path}")
         return
